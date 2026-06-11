@@ -193,8 +193,81 @@ export default function Page() {
     });
   };
 
-  // Helper getters
+  // Compiled dynamic chat threads
+  const buyerThreads = activePropertyId && properties.find(p => p.id === activePropertyId || (p as any)._id === activePropertyId) ? (() => {
+    const prop = properties.find(p => p.id === activePropertyId || (p as any)._id === activePropertyId);
+    return prop ? [{
+      recipientId: prop.sellerId,
+      recipientName: prop.sellerName,
+      propertyTitle: prop.title,
+      propertyId: prop.id || (prop as any)._id,
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+      role: 'Owner'
+    }] : [];
+  })() : [];
+
+  const sellerProps = properties.filter(p => p.sellerId === user?.id);
+  const sellerThreads = visitsLog
+    .filter(v => sellerProps.some(p => p.id === v.propertyId || (p as any)._id === v.propertyId))
+    .map(v => {
+      const prop = sellerProps.find(p => p.id === v.propertyId || (p as any)._id === v.propertyId);
+      return {
+        recipientId: v.buyerId,
+        recipientName: v.buyerName,
+        propertyTitle: prop ? prop.title : 'Listed Property',
+        propertyId: v.propertyId,
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+        role: 'Buyer'
+      };
+    });
+
+  const rawThreads = user?.role === 'seller' ? sellerThreads : buyerThreads;
+
+  const uniqueThreadsMap = new Map();
+  rawThreads.forEach(t => uniqueThreadsMap.set(`${t.recipientId}-${t.propertyId}`, t));
+  const uniqueThreads: any[] = Array.from(uniqueThreadsMap.values());
+
+  if (uniqueThreads.length === 0) {
+    if (user?.role === 'seller') {
+      uniqueThreads.push({
+        recipientId: 'user_2',
+        recipientName: 'Rahul Verma',
+        propertyTitle: properties[0]?.title || 'Modern 2BHK flat in Hitech City',
+        propertyId: properties[0]?.id || 'prop_1',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+        role: 'Tenant/Buyer'
+      });
+    } else {
+      uniqueThreads.push({
+        recipientId: 'user_1',
+        recipientName: 'Anjali Sharma',
+        propertyTitle: properties[1]?.title || 'Modern 2BHK flat in Hitech City',
+        propertyId: properties[1]?.id || 'prop_2',
+        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+        role: 'Owner/Seller'
+      });
+    }
+  }
+
   const activeRecipient = () => {
+    const prop = properties.find(p => p.sellerId === activeRecipientId);
+    if (prop) {
+      return { 
+        name: prop.sellerName, 
+        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150', 
+        role: 'owner' 
+      };
+    }
+
+    const visit = visitsLog.find(v => v.buyerId === activeRecipientId);
+    if (visit) {
+      return { 
+        name: visit.buyerName, 
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150', 
+        role: 'tenant' 
+      };
+    }
+
     if (activeRecipientId === 'user_1') {
       return { name: 'Anjali Sharma', avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150', role: 'owner' };
     }
@@ -795,17 +868,23 @@ export default function Page() {
               </h3>
 
               <div className="flex-grow overflow-y-auto space-y-2">
-                <button onClick={() => { setActiveRecipientId('user_1'); setActivePropertyId('prop_2'); }}
-                        className={`w-full flex items-center space-x-3.5 p-3 rounded-xl transition-all border text-left focus:outline-none ${activeRecipientId === 'user_1' ? 'bg-amber-500/10 border-amber-500/30' : 'bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/45'}`}>
-                  <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150" className="h-10 w-10 rounded-full object-cover border border-slate-200 dark:border-slate-800 shrink-0" />
-                  <div className="flex-grow min-w-0">
-                    <div className="flex justify-between items-center">
-                      <p className="font-extrabold text-xs truncate text-slate-900 dark:text-white">Anjali Sharma</p>
-                      <span className="text-[9px] font-bold text-slate-400">10:45 AM</span>
-                    </div>
-                    <p className="text-[9px] font-black text-amber-500 uppercase mt-0.5">Owner • Modern 2BHK flat in Hitech City</p>
-                  </div>
-                </button>
+                {uniqueThreads.map((t) => {
+                  const isActive = activeRecipientId === t.recipientId && activePropertyId === t.propertyId;
+                  return (
+                    <button key={`${t.recipientId}-${t.propertyId}`}
+                            onClick={() => { setActiveRecipientId(t.recipientId); setActivePropertyId(t.propertyId); }}
+                            className={`w-full flex items-center space-x-3.5 p-3 rounded-xl transition-all border text-left focus:outline-none ${isActive ? 'bg-amber-500/10 border-amber-500/30' : 'bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/45'}`}>
+                      <img src={t.avatar} className="h-10 w-10 rounded-full object-cover border border-slate-200 dark:border-slate-800 shrink-0" />
+                      <div className="flex-grow min-w-0">
+                        <div className="flex justify-between items-center">
+                          <p className="font-extrabold text-xs truncate text-slate-900 dark:text-white">{t.recipientName}</p>
+                          <span className="text-[9px] font-bold text-slate-400">10:45 AM</span>
+                        </div>
+                        <p className="text-[9px] font-black text-amber-500 uppercase mt-0.5">{t.role} • {t.propertyTitle}</p>
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

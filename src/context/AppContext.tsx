@@ -134,14 +134,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const toggleRole = () => {
     if (!user) return;
-    const newRole: 'buyer' | 'seller' = user.role === 'buyer' ? 'seller' : 'buyer';
-    const newName = newRole === 'seller' ? 'Anjali Sharma' : 'Rahul Verma';
-    const newAvatar = newRole === 'seller' 
-      ? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150' 
-      : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150';
     
-    const updated: UserInfo = { ...user, role: newRole, name: newName, avatar: newAvatar };
-    setUser(updated);
+    const isDemo = user.id === 'user_1' || user.id === 'user_2' || token === 'demo_token';
+    
+    if (isDemo) {
+      const nextRole = user.role === 'buyer' ? 'seller' : 'buyer';
+      const updated: UserInfo = nextRole === 'seller' ? {
+        id: 'user_1',
+        name: 'Anjali Sharma',
+        email: 'anjali@owner2buyer.com',
+        role: 'seller',
+        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150'
+      } : {
+        id: 'user_2',
+        name: 'Rahul Verma',
+        email: 'rahul@owner2buyer.com',
+        role: 'buyer',
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'
+      };
+      setUser(updated);
+      localStorage.setItem('o2b_user', JSON.stringify(updated));
+    } else {
+      const nextRole: 'buyer' | 'seller' = user.role === 'buyer' ? 'seller' : 'buyer';
+      const updated: UserInfo = { ...user, role: nextRole };
+      setUser(updated);
+      localStorage.setItem('o2b_user', JSON.stringify(updated));
+    }
   };
 
   const fetchProperties = async (filters: any = {}) => {
@@ -357,6 +375,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const activeRecipientName = (): string => {
+    const prop = properties.find(p => p.sellerId === activeRecipientId);
+    if (prop) return prop.sellerName;
+
+    const visit = visitsLog.find(v => v.buyerId === activeRecipientId);
+    if (visit) return visit.buyerName;
+
     if (activeRecipientId === 'user_1') return 'Anjali Sharma';
     if (activeRecipientId === 'user_2') return 'Rahul Verma';
     if (activeRecipientId === 'user_3') return 'Vikram Reddy';
