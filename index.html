@@ -1,0 +1,1865 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Owner2Buyer - Direct P2P AI Real Estate Marketplace</title>
+  
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          },
+          colors: {
+            slate: {
+              950: '#020617',
+              900: '#0f172a',
+              850: '#1e293b',
+              800: '#334155',
+              750: '#475569',
+              600: '#475569',
+              500: '#64748b',
+              400: '#94a3b8',
+              300: '#cbd5e1'
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <!-- Canvas Confetti CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+  <!-- Alpine.js CDN -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    .bg-mesh {
+      background-image: 
+        radial-gradient(at 10% 20%, rgba(245, 158, 11, 0.1) 0px, transparent 50%),
+        radial-gradient(at 90% 10%, rgba(59, 130, 246, 0.08) 0px, transparent 50%),
+        radial-gradient(at 50% 80%, rgba(16, 185, 129, 0.06) 0px, transparent 50%);
+      filter: blur(40px);
+      pointer-events: none;
+    }
+    .dark .bg-mesh {
+      background-image: 
+        radial-gradient(at 10% 20%, rgba(245, 158, 11, 0.08) 0px, transparent 50%),
+        radial-gradient(at 90% 10%, rgba(59, 130, 246, 0.06) 0px, transparent 50%),
+        radial-gradient(at 50% 80%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
+    }
+    .grid-lines {
+      background-size: 24px 24px;
+      background-image: linear-gradient(to right, rgba(148, 163, 184, 0.04) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(148, 163, 184, 0.04) 1px, transparent 1px);
+    }
+    .dark .grid-lines {
+      background-image: linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
+                        linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 99px;
+    }
+    .dark ::-webkit-scrollbar-thumb {
+      background: #334155;
+    }
+    .glow-border {
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.1);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+  </style>
+</head>
+<body x-data="appState()" class="bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans min-h-screen flex flex-col transition-colors duration-300" :class="theme">
+
+  <!-- NAVBAR -->
+  <header class="sticky top-0 z-50 w-full backdrop-blur-md bg-white/95 dark:bg-slate-950/90 border-b border-slate-200 dark:border-slate-800 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 items-center justify-between">
+        
+        <!-- Logo -->
+        <div class="flex items-center">
+          <button @click="navigate('home')" class="flex items-center space-x-2.5 group focus:outline-none">
+            <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500 text-slate-950 font-black shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform duration-200">
+              O2B
+            </span>
+            <span class="text-xl font-extrabold tracking-tight block text-slate-900 dark:text-white">
+              Owner<span class="text-amber-500">2</span>Buyer
+            </span>
+          </button>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="hidden md:flex items-center space-x-1.5">
+          <button @click="navigate('properties')" class="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200"
+                  :class="activeTab === 'properties' || activeTab === 'details' ? 'text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900/60'">
+            <i data-lucide="building" class="h-4 w-4"></i>
+            <span>Browse Listings</span>
+          </button>
+          
+          <button @click="navigate('chat')" class="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200 relative"
+                  :class="activeTab === 'chat' ? 'text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900/60'">
+            <i data-lucide="message-square" class="h-4 w-4"></i>
+            <span>P2P Deal Chat</span>
+            <span class="absolute top-1 right-1 flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-450 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+            </span>
+          </button>
+
+          <button @click="navigate('dashboard')" class="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200"
+                  :class="activeTab === 'dashboard' ? 'text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900/60'">
+            <i data-lucide="layout-dashboard" class="h-4 w-4"></i>
+            <span>My Dashboard</span>
+          </button>
+
+          <button @click="navigate('visits')" class="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition-all duration-200"
+                  :class="activeTab === 'visits' ? 'text-amber-700 dark:text-amber-400 bg-amber-500/10 border border-amber-500/20' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900/60'">
+            <i data-lucide="calendar" class="h-4 w-4"></i>
+            <span>Site Visits</span>
+            <span x-show="pendingVisitsCount() > 0" class="flex items-center justify-center px-1.5 py-0.5 rounded-full text-[9px] bg-amber-500 text-slate-950 font-black ml-1.5" x-text="pendingVisitsCount()"></span>
+          </button>
+        </nav>
+
+        <!-- Navbar Controls -->
+        <div class="flex items-center space-x-3">
+          
+          <!-- Role Selector -->
+          <div class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl">
+            <span class="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden sm:inline">Portal Mode:</span>
+            <button @click="toggleRole()" class="flex items-center space-x-1.5 focus:outline-none hover:opacity-80 transition-opacity">
+              <img :src="currentUser.avatar" class="h-5 w-5 rounded-full object-cover border border-amber-500/40" />
+              <span class="text-xs font-black text-amber-600 dark:text-amber-400 uppercase" x-text="currentUser.role"></span>
+            </button>
+          </div>
+
+          <!-- Sell / Rent Quick Trigger Button -->
+          <button @click="openAddPropertyModal()" class="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs flex items-center space-x-1 transition-all shadow-md shadow-amber-500/10 focus:outline-none">
+            <i data-lucide="plus-circle" class="h-4 w-4"></i>
+            <span class="uppercase tracking-wider">List Property</span>
+          </button>
+
+          <!-- Light/Dark Mode Switcher -->
+          <button @click="toggleTheme()" class="p-2 text-slate-550 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-900 rounded-xl transition-colors focus:outline-none">
+            <i :data-lucide="theme === 'light' ? 'moon' : 'sun'" class="h-4.5 w-4.5"></i>
+          </button>
+
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN VIEWPORT -->
+  <main class="flex-grow flex flex-col relative overflow-hidden">
+    
+    <!-- HOME SCREEN -->
+    <template x-if="activeTab === 'home'">
+      <div class="flex-grow flex flex-col animate-fade-in">
+        
+        <!-- Hero graphic -->
+        <section class="relative overflow-hidden pt-20 pb-16 lg:pt-24 lg:pb-20 bg-slate-950 text-white grid-lines dark border-b border-slate-900">
+          <div class="bg-mesh absolute inset-0"></div>
+          
+          <div class="max-w-7xl mx-auto px-4 relative z-10 text-center space-y-8">
+            <div class="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/25 text-xs font-bold text-amber-400">
+              <i data-lucide="sparkles" class="h-3.5 w-3.5 animate-pulse"></i>
+              <span>Direct P2P Peer-to-Peer Real Estate Marketplace</span>
+            </div>
+
+            <div class="space-y-4 max-w-4xl mx-auto">
+              <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none text-white">
+                Broker-Free Deals. <span class="bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">Direct Contracts.</span> <br />
+                Your Home, Your Agreement.
+              </h1>
+              <p class="text-xs sm:text-sm md:text-base text-slate-350 max-w-2xl mx-auto leading-relaxed font-semibold">
+                Sellers post houses, lands, and shops for free. Buyers connect directly to negotiate rates, schedule visits, and digitally sign stamp papers.
+              </p>
+            </div>
+
+            <!-- Home search console -->
+            <div class="max-w-4xl mx-auto bg-slate-900/90 p-4 rounded-3xl border border-slate-800 shadow-2xl glow-border">
+              <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                
+                <!-- Purchase Mode selector -->
+                <div class="flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                  <button @click="searchType = 'sale'; updateBudgetLimits()" class="flex-1 py-2 text-xs font-bold rounded-lg transition-colors focus:outline-none"
+                          :class="searchType === 'sale' ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'">Buy</button>
+                  <button @click="searchType = 'rent'; updateBudgetLimits()" class="flex-1 py-2 text-xs font-bold rounded-lg transition-colors focus:outline-none"
+                          :class="searchType === 'rent' ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-400 hover:text-white'">Rent</button>
+                </div>
+
+                <!-- Locality selection -->
+                <div class="flex flex-col justify-center text-left bg-slate-950 px-3.5 py-1.5 rounded-xl border border-slate-800">
+                  <span class="text-[8px] uppercase font-black tracking-widest text-slate-550">Locality</span>
+                  <select x-model="searchCity" class="bg-transparent border-none text-white text-xs font-bold focus:outline-none w-full cursor-pointer mt-0.5 outline-none">
+                    <option value="Hyderabad" class="bg-slate-950">Hyderabad</option>
+                    <option value="Bangalore" class="bg-slate-950">Bangalore</option>
+                  </select>
+                </div>
+
+                <!-- Category selection -->
+                <div class="flex flex-col justify-center text-left bg-slate-950 px-3.5 py-1.5 rounded-xl border border-slate-800">
+                  <span class="text-[8px] uppercase font-black tracking-widest text-slate-550">Property Category</span>
+                  <select x-model="searchCategory" class="bg-transparent border-none text-white text-xs font-bold focus:outline-none w-full cursor-pointer mt-0.5 outline-none">
+                    <option value="All" class="bg-slate-950">All Categories</option>
+                    <option value="Apartment" class="bg-slate-950">Apartments</option>
+                    <option value="Villa" class="bg-slate-950">Villas</option>
+                    <option value="Duplex" class="bg-slate-950">Duplexes</option>
+                    <option value="Land" class="bg-slate-950">Land / Plots</option>
+                    <option value="Shop" class="bg-slate-950">Shops / Commercial</option>
+                  </select>
+                </div>
+
+                <!-- Action Browse -->
+                <button @click="navigate('properties')" class="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl flex items-center justify-center space-x-2 transition-all shadow-lg shadow-amber-500/15 focus:outline-none">
+                  <i data-lucide="search" class="h-4.5 w-4.5"></i>
+                  <span class="text-xs uppercase tracking-wider">Search Portal</span>
+                </button>
+
+              </div>
+            </div>
+
+            <!-- Role promotion prompt -->
+            <div class="flex flex-col sm:flex-row justify-center items-center gap-3 pt-3">
+              <button @click="openAddPropertyModal()" class="flex items-center space-x-2 bg-slate-900/80 hover:bg-slate-900 border border-slate-850 hover:border-amber-500/40 text-slate-300 hover:text-white px-4.5 py-2.5 rounded-2xl text-xs transition-colors focus:outline-none">
+                <i data-lucide="plus" class="h-4 w-4 text-amber-500"></i>
+                <span>Are you a landlord or seller? <strong>Post property listing here</strong></span>
+              </button>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- Portal benefit stats grid -->
+        <section class="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-850 py-10 transition-colors">
+          <div class="max-w-7xl mx-auto px-4">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-xs">
+              <div class="space-y-1">
+                <div class="text-3xl font-black text-amber-500">0%</div>
+                <div class="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Broker Commission</div>
+              </div>
+              <div class="space-y-1 border-l border-slate-200 dark:border-slate-850">
+                <div class="text-3xl font-black text-amber-500">₹2.4 Cr+</div>
+                <div class="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Client brokerage Saved</div>
+              </div>
+              <div class="space-y-1 border-l border-slate-200 dark:border-slate-850">
+                <div class="text-3xl font-black text-amber-500">100%</div>
+                <div class="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Verified Land Titles</div>
+              </div>
+              <div class="space-y-1 border-l border-slate-200 dark:border-slate-850">
+                <div class="text-3xl font-black text-amber-500">P2P</div>
+                <div class="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">E-Stamp Rental Deeds</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Handpicked deals listing area -->
+        <section class="max-w-7xl mx-auto px-4 py-16 w-full flex-grow">
+          <div class="flex items-end justify-between mb-8">
+            <div>
+              <span class="text-xs font-bold text-amber-600 dark:text-amber-400 uppercase tracking-widest">Verified Listings</span>
+              <h2 class="text-2xl font-black tracking-tight mt-1">Featured Real Estate Deals</h2>
+            </div>
+            
+            <button @click="navigate('properties')" class="text-amber-500 hover:text-amber-650 text-xs font-bold flex items-center space-x-1.5 focus:outline-none">
+              <span>View Listings Grid</span>
+              <i data-lucide="arrow-right" class="h-4 w-4"></i>
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <template x-for="p in properties.slice(0, 3)" :key="p.id">
+              <div @click="selectProperty(p.id)" class="group rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900/40 overflow-hidden hover:shadow-xl hover:border-amber-500/35 transition-all duration-300 flex flex-col cursor-pointer">
+                
+                <!-- Thumb image -->
+                <div class="relative aspect-[16/10] bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                  <img :src="p.images[0]" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  
+                  <span class="absolute top-4 left-4 px-2.5 py-1 rounded-xl text-[9px] font-black bg-slate-950 text-white tracking-widest uppercase shadow-md">
+                    verified title
+                  </span>
+
+                  <div class="absolute bottom-4 left-4 bg-slate-950/90 backdrop-blur-sm border border-slate-800/60 px-3 py-1.5 rounded-xl shadow">
+                    <span class="text-amber-500 font-extrabold text-sm" x-text="formatPrice(p.price) + (p.type === 'rent' ? '/mo' : '')"></span>
+                  </div>
+                </div>
+
+                <!-- Summary texts details -->
+                <div class="p-5 space-y-4 flex-grow flex flex-col justify-between">
+                  <div class="space-y-1.5">
+                    <span class="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest" x-text="p.category + ' • ' + p.location.city"></span>
+                    <h3 class="font-extrabold text-base text-slate-900 dark:text-white line-clamp-1 group-hover:text-amber-500 transition-colors" x-text="p.title"></h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center font-medium">
+                      <i data-lucide="map-pin" class="h-3.5 w-3.5 mr-1 text-amber-500 shrink-0"></i>
+                      <span x-text="p.location.address"></span>
+                    </p>
+                  </div>
+
+                  <!-- spec tags divider -->
+                  <div class="flex justify-between items-center pt-3.5 border-t border-slate-150 dark:border-slate-800/80">
+                    <div class="flex items-center space-x-3.5 text-[10px] font-bold text-slate-500 dark:text-slate-400">
+                      <span class="flex items-center"><i data-lucide="bed" class="h-3.5 w-3.5 mr-1 text-slate-400"></i> <span x-text="p.beds ? p.beds + ' BHK' : 'N/A'"></span></span>
+                      <span class="flex items-center"><i data-lucide="maximize-2" class="h-3.5 w-3.5 mr-1 text-slate-400"></i> <span x-text="p.area + ' sq.ft'"></span></span>
+                    </div>
+
+                    <div class="flex items-center space-x-1 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-lg">
+                      <span class="h-1 w-1 rounded-full bg-emerald-500"></span>
+                      <span class="text-[9px] font-extrabold text-emerald-600 dark:text-emerald-400" x-text="'Trust ' + (p.sellerRating * 20) + '%'"></span>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </template>
+          </div>
+        </section>
+
+      </div>
+    </template>
+
+    <!-- LISTINGS FILTER GRID VIEW -->
+    <template x-if="activeTab === 'properties'">
+      <div class="flex-grow flex flex-col md:flex-row h-[calc(100vh-64px)] animate-fade-in">
+        
+        <!-- Filter Controls Sidebar (Left) -->
+        <div class="w-full md:w-[30%] lg:w-[25%] bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full overflow-y-auto p-5 space-y-6">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-200 dark:border-slate-800">
+            <h3 class="font-extrabold text-sm flex items-center gap-1.5 dark:text-white">
+              <i data-lucide="sliders" class="h-4.5 w-4.5 text-amber-500"></i> Search Filters
+            </h3>
+            <button @click="resetFilters()" class="text-[10px] font-bold text-slate-400 hover:text-amber-500 focus:outline-none">Clear All</button>
+          </div>
+
+          <!-- Transaction Type tab -->
+          <div class="space-y-2">
+            <span class="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Deals Type</span>
+            <div class="flex bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold">
+              <button @click="searchType = 'sale'; updateBudgetLimits()" class="flex-1 py-1.5 rounded-lg transition-all focus:outline-none" :class="searchType === 'sale' ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-500 dark:text-slate-450'">Buy</button>
+              <button @click="searchType = 'rent'; updateBudgetLimits()" class="flex-1 py-1.5 rounded-lg transition-all focus:outline-none" :class="searchType === 'rent' ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-500 dark:text-slate-450'">Rent</button>
+            </div>
+          </div>
+
+          <!-- Locality -->
+          <div class="space-y-2">
+            <span class="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Select Locality</span>
+            <select x-model="searchCity" class="w-full px-3.5 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-amber-500">
+              <option value="Hyderabad">Hyderabad</option>
+              <option value="Bangalore">Bangalore</option>
+            </select>
+          </div>
+
+          <!-- Category -->
+          <div class="space-y-2">
+            <span class="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Property category</span>
+            <select x-model="searchCategory" class="w-full px-3.5 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 focus:outline-none focus:border-amber-500">
+              <option value="All">All Categories</option>
+              <option value="Apartment">Apartment</option>
+              <option value="Villa">Villa</option>
+              <option value="Duplex">Duplex</option>
+              <option value="Land">Land / Plot</option>
+              <option value="Shop">Shop / Commercial</option>
+            </select>
+          </div>
+
+          <!-- Bedrooms -->
+          <div class="space-y-2">
+            <span class="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Bedrooms (BHK)</span>
+            <div class="grid grid-cols-5 gap-1 bg-slate-100 dark:bg-slate-950 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-center font-bold text-[10px]">
+              <button @click="searchBhk = 'All'" class="py-1 rounded-lg focus:outline-none transition-colors" :class="searchBhk === 'All' ? 'bg-amber-500 text-slate-950' : 'text-slate-500 dark:text-slate-450'">All</button>
+              <button @click="searchBhk = 1" class="py-1 rounded-lg focus:outline-none transition-colors" :class="searchBhk === 1 ? 'bg-amber-500 text-slate-950' : 'text-slate-500 dark:text-slate-450'">1</button>
+              <button @click="searchBhk = 2" class="py-1 rounded-lg focus:outline-none transition-colors" :class="searchBhk === 2 ? 'bg-amber-500 text-slate-950' : 'text-slate-500 dark:text-slate-450'">2</button>
+              <button @click="searchBhk = 3" class="py-1 rounded-lg focus:outline-none transition-colors" :class="searchBhk === 3 ? 'bg-amber-500 text-slate-950' : 'text-slate-500 dark:text-slate-450'">3</button>
+              <button @click="searchBhk = 4" class="py-1 rounded-lg focus:outline-none transition-colors" :class="searchBhk === 4 ? 'bg-amber-500 text-slate-950' : 'text-slate-500 dark:text-slate-450'">4</button>
+            </div>
+          </div>
+
+          <!-- Budget Range -->
+          <div class="space-y-2">
+            <div class="flex justify-between items-center text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+              <span>Max Budget Limit</span>
+              <span class="text-amber-500 font-extrabold" x-text="formatPrice(searchBudget)"></span>
+            </div>
+            <input type="range" 
+                   :min="searchType === 'rent' ? 10000 : 1500000" 
+                   :max="searchType === 'rent' ? 300000 : 90000000" 
+                   :step="searchType === 'rent' ? 5000 : 500000" 
+                   x-model="searchBudget" 
+                   class="w-full accent-amber-500 cursor-pointer h-1 bg-slate-200 dark:bg-slate-800 rounded-lg appearance-none" />
+          </div>
+
+          <!-- Fuzzy name matches -->
+          <div class="space-y-2">
+            <span class="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Search Keywords</span>
+            <div class="relative">
+              <input type="text" x-model="searchQuery" placeholder="Search garden, floor, etc..." class="w-full pl-9 pr-3 py-2 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs text-slate-800 dark:text-slate-200 focus:outline-none focus:border-amber-500" />
+              <i data-lucide="search" class="absolute left-3 top-3 h-4 w-4 text-slate-400"></i>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Middle Listings Grid Lists -->
+        <div class="flex-grow flex flex-col md:w-[40%] lg:w-[45%] h-full overflow-y-auto p-6 space-y-6">
+          <div class="pb-3 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center flex-wrap gap-3">
+            <div>
+              <h2 class="font-extrabold text-lg dark:text-white flex items-center gap-2">
+                <span>Verified Direct Marketplace</span>
+                <span class="text-xs font-black text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-lg border border-amber-500/20" x-text="filteredProperties().length + ' found'"></span>
+              </h2>
+              <p class="text-[9px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mt-0.5" x-text="'All broker-free property records in ' + searchCity"></p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <template x-for="p in filteredProperties()" :key="p.id">
+              <div @click="selectProperty(p.id)" class="group rounded-3xl border border-slate-200 dark:border-slate-850 bg-white dark:bg-slate-900/40 overflow-hidden hover:shadow-xl hover:border-amber-500/30 transition-all duration-300 flex flex-col cursor-pointer"
+                   :class="selectedProperty && selectedProperty.id === p.id ? 'ring-2 ring-amber-500/80 border-transparent bg-amber-500/[0.01]' : ''">
+                
+                <!-- Card photo -->
+                <div class="relative aspect-[16/10] bg-slate-100 dark:bg-slate-850 overflow-hidden">
+                  <img :src="p.images[0]" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  
+                  <span class="absolute top-3 left-3 px-2 py-0.5 rounded-lg text-[8px] font-black uppercase bg-slate-950 text-white tracking-widest shadow-sm">
+                    direct deal
+                  </span>
+
+                  <div class="absolute bottom-3 left-3 bg-slate-950/90 backdrop-blur-sm border border-slate-850 px-2.5 py-1 rounded-xl shadow-md">
+                    <span class="text-amber-500 font-extrabold text-xs" x-text="formatPrice(p.price) + (p.type === 'rent' ? '/mo' : '')"></span>
+                  </div>
+                </div>
+
+                <!-- Text specifications block -->
+                <div class="p-4 space-y-3.5 flex-grow flex flex-col justify-between">
+                  <div class="space-y-1">
+                    <div class="flex justify-between items-center text-[9px] uppercase tracking-widest">
+                      <span class="font-black text-amber-600 dark:text-amber-400" x-text="p.category"></span>
+                      <span class="font-bold text-slate-500 dark:text-slate-450" x-text="'Trust: ' + (p.sellerRating * 20) + '%'"></span>
+                    </div>
+                    <h3 class="font-extrabold text-sm text-slate-900 dark:text-white line-clamp-1 group-hover:text-amber-500 transition-colors" x-text="p.title"></h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 flex items-center font-medium">
+                      <i data-lucide="map-pin" class="h-3 w-3 mr-1 text-amber-500 shrink-0"></i>
+                      <span x-text="p.location.address" class="truncate"></span>
+                    </p>
+                  </div>
+
+                  <!-- specifications footer row -->
+                  <div class="flex justify-between items-center pt-3 border-t border-slate-100 dark:border-slate-800/60 text-[10px] font-bold text-slate-550 dark:text-slate-400">
+                    <div class="flex items-center space-x-3">
+                      <span class="flex items-center"><i data-lucide="bed" class="h-3.5 w-3.5 mr-0.5 text-slate-400"></i> <span x-text="p.beds ? p.beds + ' BHK' : 'N/A'"></span></span>
+                      <span class="flex items-center"><i data-lucide="maximize-2" class="h-3.5 w-3.5 mr-0.5 text-slate-400"></i> <span x-text="p.area + ' sf'"></span></span>
+                    </div>
+
+                    <span class="text-[10px] text-amber-500 font-extrabold flex items-center uppercase tracking-wider">
+                      Inspect <i data-lucide="chevron-right" class="h-3 w-3 ml-0.5"></i>
+                    </span>
+                  </div>
+                </div>
+
+              </div>
+            </template>
+
+            <!-- Zero filter results visual check -->
+            <template x-if="filteredProperties().length === 0">
+              <div class="col-span-full py-16 px-4 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-3xl space-y-4">
+                <i data-lucide="search-code" class="h-10 w-10 text-slate-450 mx-auto"></i>
+                <h4 class="font-extrabold text-sm dark:text-white">No Matching Properties found</h4>
+                <p class="text-xs text-slate-450 max-w-xs mx-auto leading-normal">Try clearing text filters or sliding budget bounds higher to see other properties.</p>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Sticky Interactive Locality Map (Right) -->
+        <div class="hidden md:block md:w-[30%] lg:w-[30%] bg-slate-100 dark:bg-slate-900/60 border-l border-slate-200 dark:border-slate-800 p-4 h-full relative">
+          <div class="absolute inset-0 p-4 flex flex-col justify-between">
+            
+            <div class="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2">
+              <span class="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center">
+                <i data-lucide="map" class="h-4 w-4 mr-1 text-amber-500"></i> Dynamic Locality Pins
+              </span>
+              <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+            </div>
+
+            <!-- SVG Map Pin Coordinates layout diagram -->
+            <div class="flex-grow flex items-center justify-center p-2 relative">
+              <svg viewBox="0 0 200 200" class="w-full max-w-[250px] stroke-slate-300 dark:stroke-slate-800 fill-none stroke-[1.5]">
+                <rect x="10" y="10" width="180" height="180" rx="16" class="fill-slate-50/70 dark:fill-slate-950/45" />
+                
+                <!-- grid paths representation -->
+                <path d="M 10 60 Q 80 50 190 70" />
+                <path d="M 10 140 Q 90 130 190 120" stroke-dasharray="3 3" />
+                <path d="M 50 10 Q 70 100 60 190" />
+                <path d="M 140 10 Q 120 90 150 190" />
+                
+                <!-- Coordinates points list plotting -->
+                <template x-for="p in filteredProperties()" :key="p.id">
+                  <g class="cursor-pointer group animate-fade-in" @click="selectProperty(p.id)">
+                    <circle :cx="p.coords.x" :cy="p.coords.y" r="8" 
+                            class="fill-amber-500/25 stroke-amber-500/45 stroke-[0.5]"
+                            :class="selectedProperty && selectedProperty.id === p.id ? 'animate-ping' : 'hidden'" />
+                    <circle :cx="p.coords.x" :cy="p.coords.y" r="4.5" 
+                            :class="selectedProperty && selectedProperty.id === p.id ? 'fill-red-500 scale-125' : 'fill-amber-500 hover:fill-amber-600 transition-all'" />
+                  </g>
+                </template>
+              </svg>
+            </div>
+
+            <!-- Previews visual element target -->
+            <div class="p-3 bg-white dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl">
+              <template x-if="selectedProperty">
+                <div class="flex items-center space-x-3">
+                  <img :src="selectedProperty.images[0]" class="h-10 w-10 rounded-lg object-cover border border-slate-200 dark:border-slate-800" />
+                  <div class="min-w-0 flex-grow">
+                    <p class="font-extrabold text-xs truncate text-slate-900 dark:text-white" x-text="selectedProperty.title"></p>
+                    <p class="text-[9px] text-amber-500 font-extrabold uppercase mt-0.5" x-text="formatPrice(selectedProperty.price)"></p>
+                  </div>
+                  <button @click="navigate('details')" class="p-2 bg-amber-500 text-slate-950 rounded-xl hover:bg-amber-600 focus:outline-none transition-colors">
+                    <i data-lucide="arrow-right" class="h-3.5 w-3.5"></i>
+                  </button>
+                </div>
+              </template>
+              <template x-if="!selectedProperty">
+                <p class="text-[9px] text-slate-500 text-center font-bold uppercase tracking-wider py-1.5">Select a map pin coordinate to preview specs</p>
+              </template>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </template>
+
+    <!-- DETAILED VIEW -->
+    <template x-if="activeTab === 'details' && selectedProperty">
+      <div class="flex-grow overflow-y-auto p-4 sm:p-6 lg:p-8 space-y-8 animate-fade-in max-w-7xl mx-auto w-full">
+        
+        <!-- Header details navigation back buttons -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-205 dark:border-slate-850 pb-5">
+          <div class="space-y-1">
+            <button @click="navigate('properties')" class="inline-flex items-center space-x-1.5 text-xs font-bold text-amber-650 dark:text-amber-450 hover:underline mb-1 focus:outline-none">
+              <i data-lucide="arrow-left" class="h-3.5 w-3.5"></i> <span>Return to listings</span>
+            </button>
+            <h1 class="text-xl sm:text-2xl font-black text-slate-905 dark:text-white" x-text="selectedProperty.title"></h1>
+            <p class="text-xs text-slate-550 dark:text-slate-400 flex items-center font-medium">
+              <i data-lucide="map-pin" class="h-3.5 w-3.5 mr-1 text-amber-500"></i> <span x-text="selectedProperty.location.address"></span>
+            </p>
+          </div>
+
+          <!-- Quick Bookmark actions / chat initiation trigger -->
+          <div class="flex items-center space-x-2">
+            <button @click="toggleFavorite(selectedProperty.id)" class="p-2.5 border rounded-xl flex items-center justify-center transition-all focus:outline-none border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"
+                    :class="isFavorite(selectedProperty.id) ? 'bg-red-500 border-red-650 text-white' : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-100'">
+              <i data-lucide="bookmark" class="h-4.5 w-4.5" :class="isFavorite(selectedProperty.id) ? 'fill-white' : ''"></i>
+            </button>
+
+            <button @click="initiateChat(selectedProperty.sellerId, selectedProperty.id)" class="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs flex items-center space-x-2 shadow-lg shadow-amber-500/10 focus:outline-none uppercase tracking-wider transition-all">
+              <i data-lucide="message-square" class="h-4.5 w-4.5"></i>
+              <span>Direct Chat with Landlord</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- split description & sidebar metrics blocks -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          <!-- specs description grids (Left) -->
+          <div class="lg:col-span-2 space-y-6">
+            
+            <!-- Large photography display -->
+            <div class="relative aspect-video bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow">
+              <img :src="selectedProperty.images[0]" class="h-full w-full object-cover" />
+              <div class="absolute bottom-4 right-4 bg-slate-950/80 backdrop-blur-md px-3 py-1 rounded-lg text-[9px] font-extrabold text-white tracking-widest uppercase">
+                verified photography deed
+              </div>
+            </div>
+
+            <!-- Parameters dashboard details row -->
+            <div class="grid grid-cols-4 gap-4 p-5 bg-white dark:bg-slate-900 border border-slate-205 dark:border-slate-850 rounded-2xl text-center">
+              <div>
+                <span class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Pricing Valuation</span>
+                <p class="font-extrabold text-base text-amber-500 mt-1" x-text="formatPrice(selectedProperty.price) + (selectedProperty.type === 'rent' ? '/mo' : '')"></p>
+              </div>
+              <div class="border-l border-slate-150 dark:border-slate-800">
+                <span class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">BHK Rooms</span>
+                <p class="font-extrabold text-base dark:text-white mt-1" x-text="selectedProperty.beds ? selectedProperty.beds + ' BHK' : 'N/A'"></p>
+              </div>
+              <div class="border-l border-slate-150 dark:border-slate-800">
+                <span class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Bathrooms</span>
+                <p class="font-extrabold text-base dark:text-white mt-1" x-text="selectedProperty.baths ? selectedProperty.baths + ' Bath' : 'N/A'"></p>
+              </div>
+              <div class="border-l border-slate-150 dark:border-slate-800">
+                <span class="text-[9px] font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">Area sq.ft</span>
+                <p class="font-extrabold text-base dark:text-white mt-1" x-text="selectedProperty.area + ' sq.ft'"></p>
+              </div>
+            </div>
+
+            <!-- Text Description summaries -->
+            <div class="p-6 bg-white dark:bg-slate-900 border border-slate-202 dark:border-slate-850 rounded-2xl space-y-3">
+              <h3 class="font-extrabold text-sm dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2.5 flex items-center gap-1.5">
+                <i data-lucide="align-left" class="h-4.5 w-4.5 text-amber-500"></i> Property Overview description
+              </h3>
+              <p class="text-xs leading-relaxed text-slate-600 dark:text-slate-300 font-medium" x-text="selectedProperty.description"></p>
+            </div>
+
+            <!-- Amenities chips lists -->
+            <div class="p-6 bg-white dark:bg-slate-900 border border-slate-202 dark:border-slate-850 rounded-2xl space-y-3.5">
+              <h3 class="font-extrabold text-sm dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2.5 flex items-center gap-1.5">
+                <i data-lucide="check-square" class="h-4.5 w-4.5 text-amber-500"></i> Amenities Checklist
+              </h3>
+              <div class="flex flex-wrap gap-2.5">
+                <template x-for="item in selectedProperty.amenities" :key="item">
+                  <span class="px-3.5 py-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 text-xs font-bold text-slate-700 dark:text-slate-300 rounded-xl flex items-center space-x-1.5">
+                    <i data-lucide="check" class="h-3.5 w-3.5 text-emerald-500"></i>
+                    <span x-text="item"></span>
+                  </span>
+                </template>
+              </div>
+            </div>
+
+            <!-- price history graph representations visualizer -->
+            <div class="p-6 bg-white dark:bg-slate-900 border border-slate-202 dark:border-slate-850 rounded-2xl space-y-4">
+              <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div>
+                  <h3 class="font-extrabold text-sm dark:text-white flex items-center gap-1.5">
+                    <i data-lucide="trending-up" class="h-4.5 w-4.5 text-amber-500"></i> Locality Capital Value Index Trends
+                  </h3>
+                  <p class="text-[10px] text-slate-500 dark:text-slate-400 font-bold uppercase mt-0.5">Estimated price variations per sq.ft</p>
+                </div>
+                <span class="text-xs font-bold text-emerald-600 bg-emerald-500/10 border border-emerald-500/20 px-2.5 py-0.5 rounded-lg flex items-center gap-1">
+                  <i data-lucide="arrow-up-right" class="h-3 w-3"></i> +26% 5Y Growth
+                </span>
+              </div>
+
+              <!-- Bar graphs representations simulated -->
+              <div class="space-y-4 pt-2">
+                <div class="space-y-1.5">
+                  <div class="flex justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    <span>Year 2022</span>
+                    <span class="font-extrabold" x-text="'₹' + Math.round((selectedProperty.price / selectedProperty.area) * 0.78) + ' / sq.ft'"></span>
+                  </div>
+                  <div class="w-full bg-slate-100 dark:bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-850">
+                    <div class="bg-slate-400 dark:bg-slate-700 h-full rounded-full" style="width: 78%"></div>
+                  </div>
+                </div>
+
+                <div class="space-y-1.5">
+                  <div class="flex justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                    <span>Year 2024</span>
+                    <span class="font-extrabold" x-text="'₹' + Math.round((selectedProperty.price / selectedProperty.area) * 0.90) + ' / sq.ft'"></span>
+                  </div>
+                  <div class="w-full bg-slate-100 dark:bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-850">
+                    <div class="bg-slate-400 dark:bg-slate-700 h-full rounded-full" style="width: 90%"></div>
+                  </div>
+                </div>
+
+                <div class="space-y-1.5">
+                  <div class="flex justify-between text-[11px] font-bold text-slate-500 dark:text-slate-350">
+                    <span class="text-amber-500 font-extrabold">Year 2026 (Current Value)</span>
+                    <span class="text-amber-500 font-black" x-text="'₹' + Math.round(selectedProperty.price / selectedProperty.area) + ' / sq.ft'"></span>
+                  </div>
+                  <div class="w-full bg-slate-100 dark:bg-slate-950 h-2 rounded-full overflow-hidden border border-slate-200/50 dark:border-slate-850">
+                    <div class="bg-amber-500 h-full rounded-full" style="width: 100%"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Calculators: Mortgage or Rent estimation calculator logic -->
+            <div class="p-6 bg-white dark:bg-slate-900 border border-slate-202 dark:border-slate-850 rounded-2xl space-y-5">
+              <h3 class="font-extrabold text-sm dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2.5 flex items-center gap-1.5">
+                <i data-lucide="calculator" class="h-4.5 w-4.5 text-amber-500"></i> Estimator Console
+              </h3>
+
+              <!-- For Sale Properties (Mortgage Calculator) -->
+              <template x-if="selectedProperty.type === 'sale'">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-650 dark:text-slate-350">
+                  <div class="space-y-4">
+                    <div class="space-y-1">
+                      <div class="flex justify-between text-[10px] font-black uppercase text-slate-500 tracking-wider">
+                        <span>Mortgage Principle Loan</span>
+                        <span class="text-amber-500 font-extrabold" x-text="formatPrice(mortgageLoan)"></span>
+                      </div>
+                      <input type="range" min="100000" :max="selectedProperty.price" step="100000" x-model="mortgageLoan" class="w-full h-1 bg-slate-200 dark:bg-slate-800 accent-amber-500 cursor-pointer rounded-lg appearance-none" />
+                      <span class="text-[9px] text-slate-500 font-bold block" x-text="'Downpayment payment input: ' + formatPrice(selectedProperty.price - mortgageLoan)"></span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3 pt-1">
+                      <div>
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Tenure</span>
+                        <select x-model="mortgageTenure" class="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 outline-none">
+                          <option value="15">15 Years</option>
+                          <option value="20">20 Years</option>
+                          <option value="30">30 Years</option>
+                        </select>
+                      </div>
+                      <div>
+                        <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest block mb-1">Interest Rate</span>
+                        <select x-model="mortgageRate" class="w-full p-2 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 outline-none">
+                          <option value="8.0">8.0% p.a.</option>
+                          <option value="8.5">8.5% p.a.</option>
+                          <option value="9.0">9.0% p.a.</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-2xl flex flex-col justify-between">
+                    <div>
+                      <span class="text-[9px] uppercase font-black tracking-widest text-slate-500 dark:text-slate-400 block">Monthly Loan EMI Payment</span>
+                      <span class="text-2xl font-black text-amber-500 mt-1 block" x-text="formatPrice(calculateEmi()) + ' /mo'"></span>
+                    </div>
+                    <p class="text-[9px] text-slate-500 leading-normal italic mt-4 border-t border-slate-200/50 dark:border-slate-800 pt-2">
+                      * Calculation formulas based on standard EMI math compounding algorithms.
+                    </p>
+                  </div>
+                </div>
+              </template>
+
+              <!-- For Rent Properties (Rent Affordability Calculator) -->
+              <template x-if="selectedProperty.type === 'rent'">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-650 dark:text-slate-350">
+                  <div class="space-y-4">
+                    <div class="space-y-1">
+                      <div class="flex justify-between text-[10px] font-black uppercase text-slate-500 tracking-wider">
+                        <span>Your Monthly Income</span>
+                        <span class="text-amber-500 font-extrabold" x-text="formatPrice(rentIncome)"></span>
+                      </div>
+                      <input type="range" min="30000" max="1000000" step="5000" x-model="rentIncome" class="w-full h-1 bg-slate-200 dark:bg-slate-800 accent-amber-500 cursor-pointer rounded-lg appearance-none" />
+                    </div>
+
+                    <p class="text-xs font-semibold leading-relaxed">
+                      Real estate rule of thumb recommends spending no more than <strong class="text-white">30%</strong> of income on monthly rent.
+                    </p>
+                  </div>
+
+                  <div class="p-5 bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-850 rounded-2xl flex flex-col justify-between">
+                    <div>
+                      <span class="text-[9px] uppercase font-black tracking-widest text-slate-500 dark:text-slate-400 block">Recommended Rent Limit</span>
+                      <span class="text-xl font-black text-emerald-500 mt-1 block" x-text="formatPrice(Math.round(rentIncome * 0.3)) + ' /mo'"></span>
+                    </div>
+                    <div class="text-[9px] font-bold mt-3" :class="selectedProperty.price <= (rentIncome * 0.3) ? 'text-emerald-500' : 'text-rose-500'">
+                      <span x-show="selectedProperty.price <= (rentIncome * 0.3)">✓ Affordable: Rent is within the 30% rule boundary limits.</span>
+                      <span x-show="selectedProperty.price > (rentIncome * 0.3)">✕ Exceeds Recommended: Rent takes up <span x-text="Math.round((selectedProperty.price / rentIncome) * 100) + '%'"></span> of your monthly income.</span>
+                    </div>
+                  </div>
+                </div>
+              </template>
+
+            </div>
+
+          </div>
+
+          <!-- Owner contact & checks details sidebar (Right) -->
+          <div class="space-y-6">
+            <div class="p-6 bg-white dark:bg-slate-900 border border-slate-202 dark:border-slate-850 rounded-2xl shadow-xl space-y-6">
+              
+              <!-- Landlord Brief Info card -->
+              <div class="flex items-center space-x-3.5 pb-4 border-b border-slate-150 dark:border-slate-800">
+                <img :src="selectedProperty.id === 'prop_1' ? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150' : (selectedProperty.id === 'prop_2' ? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150' : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150')" class="h-11 w-11 rounded-full object-cover border border-amber-500/35" />
+                <div>
+                  <h4 class="font-extrabold text-sm dark:text-white" x-text="selectedProperty.sellerName"></h4>
+                  <span class="text-[10px] text-emerald-500 font-extrabold flex items-center mt-0.5">
+                    <i data-lucide="shield-check" class="h-3.5 w-3.5 mr-0.5"></i> Direct Verified Landlord
+                  </span>
+                </div>
+                <div class="ml-auto text-right">
+                  <span class="text-xs font-black text-amber-500" x-text="(selectedProperty.sellerRating * 20) + '%'"></span>
+                  <span class="text-[8px] text-slate-500 block leading-none font-bold uppercase">Rating</span>
+                </div>
+              </div>
+
+              <!-- Legal checklist clearance info -->
+              <div class="p-4 bg-slate-50 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-850 rounded-xl space-y-3">
+                <div class="flex justify-between items-center text-[10px] uppercase font-black tracking-widest text-slate-550">
+                  <span>Legal Audit checklist</span>
+                  <span class="text-emerald-500 font-extrabold flex items-center uppercase"><i data-lucide="check-circle" class="h-3.5 w-3.5 mr-0.5"></i> Cleared</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-[9px] font-extrabold text-slate-700 dark:text-slate-350">
+                  <span class="flex items-center"><i data-lucide="check-circle" class="h-3.5 w-3.5 text-emerald-500 mr-1 shrink-0"></i> A-Khata Title</span>
+                  <span class="flex items-center"><i data-lucide="check-circle" class="h-3.5 w-3.5 text-emerald-500 mr-1 shrink-0"></i> RERA Checked</span>
+                  <span class="flex items-center"><i data-lucide="check-circle" class="h-3.5 w-3.5 text-emerald-500 mr-1 shrink-0"></i> Nil Encumbrance</span>
+                  <span class="flex items-center"><i data-lucide="check-circle" class="h-3.5 w-3.5 text-emerald-500 mr-1 shrink-0"></i> Tax Clearance</span>
+                </div>
+              </div>
+
+              <!-- Direct actions list -->
+              <div class="space-y-3">
+                <button @click="initiateChat(selectedProperty.sellerId, selectedProperty.id)" class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center space-x-2 shadow-lg shadow-amber-500/10 focus:outline-none uppercase tracking-wider transition-all">
+                  <i data-lucide="message-square" class="h-4.5 w-4.5"></i>
+                  <span>Negotiate terms & Price</span>
+                </button>
+
+                <button @click="scheduleSiteVisit(selectedProperty.id)" class="w-full py-3 bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-900 text-slate-700 dark:text-slate-350 font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition-all focus:outline-none uppercase tracking-wider">
+                  <i data-lucide="calendar" class="h-4.5 w-4.5"></i>
+                  <span>Schedule Site Visit</span>
+                </button>
+
+                <!-- WhatsApp redirect link prefilled -->
+                <a :href="'https://api.whatsapp.com/send?phone=' + selectedProperty.sellerPhone + '&text=Hi%20' + encodeURIComponent(selectedProperty.sellerName) + ',%20I%20am%20interested%20in%2520your%2520listed%20property%20\'' + encodeURIComponent(selectedProperty.title) + '\'%2520on%20Owner2Buyer.%20Let\'s%20connect.'"
+                   target="_blank"
+                   class="w-full py-3 border border-emerald-500/40 hover:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-bold rounded-xl text-xs flex items-center justify-center space-x-2 transition-all focus:outline-none uppercase tracking-wider">
+                  <i data-lucide="phone" class="h-4.5 w-4.5 text-emerald-500"></i>
+                  <span>WhatsApp direct Connect</span>
+                </a>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </template>
+
+    <!-- DIRECT MESSAGING CHAT & DEED CONTRACT GENERATOR -->
+    <template x-if="activeTab === 'chat'">
+      <div class="flex-grow max-w-7xl mx-auto w-full px-4 py-6 flex flex-col md:flex-row h-[calc(100vh-64px)] gap-6 overflow-hidden animate-fade-in">
+        
+        <!-- Thread inbox panel lists (Left) -->
+        <div class="w-full md:w-[32%] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 flex flex-col overflow-hidden shadow-sm">
+          <h3 class="font-extrabold text-sm dark:text-white mb-4 flex items-center gap-1.5 border-b border-slate-100 dark:border-slate-800 pb-2.5">
+            <i data-lucide="inbox" class="h-4.5 w-4.5 text-amber-500"></i> Direct Negotiations Inbox
+          </h3>
+
+          <div class="flex-grow overflow-y-auto space-y-2">
+            <template x-for="t in threads" :key="t.recipientId">
+              <button @click="selectThread(t.recipientId)" class="w-full flex items-center space-x-3.5 p-3 rounded-xl transition-all border text-left focus:outline-none"
+                      :class="activeRecipientId === t.recipientId ? 'bg-amber-500/10 border-amber-500/30' : 'bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-800/45'">
+                <img :src="t.avatar" class="h-10 w-10 rounded-full object-cover border border-slate-200 dark:border-slate-800 shrink-0" />
+                <div class="flex-grow min-w-0">
+                  <div class="flex justify-between items-center">
+                    <p class="font-extrabold text-xs truncate text-slate-900 dark:text-white" x-text="t.name"></p>
+                    <span class="text-[9px] font-bold text-slate-400">10:45 AM</span>
+                  </div>
+                  <p class="text-[9px] font-black text-amber-500 uppercase mt-0.5" x-text="t.role + ' • ' + pAddress(t.propertyId)"></p>
+                </div>
+              </button>
+            </template>
+          </div>
+        </div>
+
+        <!-- Chat logs messages stream (Right) -->
+        <div class="flex-grow bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden flex flex-col shadow-sm">
+          <template x-if="activeRecipientId">
+            <div class="flex-grow flex flex-col h-full overflow-hidden">
+              
+              <!-- Recipient status details header -->
+              <div class="p-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/80 flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                  <img :src="activeRecipient().avatar" class="h-10 w-10 rounded-full object-cover border border-amber-500/35" />
+                  <div>
+                    <h4 class="font-extrabold text-sm dark:text-white" x-text="activeRecipient().name"></h4>
+                    <p class="text-[10px] text-emerald-500 font-extrabold flex items-center mt-0.5">
+                      <i data-lucide="check-circle" class="h-3.5 w-3.5 mr-0.5"></i> Connected Directly
+                    </p>
+                  </div>
+                </div>
+
+                <div class="flex items-center space-x-2">
+                  <!-- Agreement creator modal trigger -->
+                  <button @click="openAgreementBuilder()" class="flex items-center space-x-1.5 px-4.5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl text-xs shadow-md shadow-amber-500/10 transition-all focus:outline-none uppercase tracking-wider">
+                    <i data-lucide="file-signature" class="h-4 w-4"></i>
+                    <span>Draft Stamp deed</span>
+                  </button>
+                  <a :href="'tel:' + properties.find(p => p.id === activePropertyId).sellerPhone" class="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 text-slate-550 dark:text-slate-350 hover:bg-slate-200 dark:hover:bg-slate-900 transition-colors"><i data-lucide="phone" class="h-4.5 w-4.5"></i></a>
+                </div>
+              </div>
+
+              <!-- Message feeds logs list -->
+              <div class="flex-grow p-5 overflow-y-auto space-y-4 bg-slate-50 dark:bg-slate-950/35">
+                <template x-for="m in activeMessages()" :key="m.id">
+                  <div class="flex animate-fade-in" :class="m.senderId === currentUser.id ? 'justify-end' : 'justify-start'">
+                    
+                    <!-- Conditional rendering for visual e-stamp digital agreement cards -->
+                    <template x-if="m.text.startsWith('📜')">
+                      <div class="p-4 bg-slate-900 text-slate-100 rounded-3xl border-2 border-amber-500/35 space-y-4 max-w-sm sm:max-w-md shadow-2xl text-left dark glow-border" x-data="{ details: JSON.parse(m.text.replace('📜', '')) }">
+                        
+                        <!-- Government stamp duty header certification banner -->
+                        <div class="border-2 border-slate-700/80 p-3 rounded-2xl bg-amber-950/20 text-center space-y-1 relative overflow-hidden">
+                          <span class="text-[8px] font-black tracking-widest text-amber-500 uppercase block">Government of National Capital Territory of Delhi</span>
+                          <h5 class="text-[11px] font-black text-slate-100 uppercase tracking-widest leading-none">Certificate of Lease Deed Agreement</h5>
+                          <div class="flex items-center justify-between text-[7px] text-slate-550 font-mono mt-2.5 px-1">
+                            <span>CERTIFICATE NO: IN-DL983048509823V</span>
+                            <span>DUTY PAID: ₹<span x-text="details.stampDuty"></span></span>
+                          </div>
+                        </div>
+
+                        <!-- Core parties agreement details -->
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-2.5 text-[10px] font-medium text-slate-355 border-b border-slate-800 pb-3">
+                          <div>
+                            <span class="text-slate-550 text-[8px] uppercase font-black tracking-wider block">First Party (Lessor/Owner)</span>
+                            <span class="font-extrabold text-slate-200" x-text="details.landlord"></span>
+                          </div>
+                          <div>
+                            <span class="text-slate-550 text-[8px] uppercase font-black tracking-wider block">Second Party (Lessee/Tenant)</span>
+                            <span class="font-extrabold text-slate-200" x-text="details.tenant"></span>
+                          </div>
+                          <div class="col-span-2">
+                            <span class="text-slate-550 text-[8px] uppercase font-black tracking-wider block">Property Description Address</span>
+                            <span class="font-extrabold text-slate-200" x-text="details.propertyAddress"></span>
+                          </div>
+                        </div>
+
+                        <!-- Financial parameters metrics -->
+                        <div class="grid grid-cols-3 gap-2.5 bg-slate-950/70 p-3 rounded-2xl border border-slate-800 text-center">
+                          <div>
+                            <span class="text-[8px] text-slate-550 uppercase font-black tracking-wider block">Rent Price</span>
+                            <span class="font-extrabold text-amber-500 text-xs" x-text="'₹' + details.rent.toLocaleString()"></span>
+                          </div>
+                          <div class="border-x border-slate-800">
+                            <span class="text-[8px] text-slate-550 uppercase font-black tracking-wider block">Security Deposit</span>
+                            <span class="font-extrabold text-slate-200 text-xs" x-text="'₹' + details.deposit.toLocaleString()"></span>
+                          </div>
+                          <div>
+                            <span class="text-[8px] text-slate-550 uppercase font-black tracking-wider block">Deed Period</span>
+                            <span class="font-extrabold text-slate-200 text-xs" x-text="details.duration + ' Mo'"></span>
+                          </div>
+                        </div>
+
+                        <!-- Signatures blocks -->
+                        <div class="space-y-4 pt-1">
+                          <div class="flex justify-between items-center text-[9px] text-slate-400 font-bold uppercase tracking-wider">
+                            <span>Commences: <strong class="text-slate-200" x-text="details.commencementDate"></strong></span>
+                            <span>Notice Period: <strong class="text-slate-200" x-text="details.notice + ' Mo'"></strong></span>
+                          </div>
+
+                          <div class="grid grid-cols-2 gap-3 pt-1">
+                            <!-- Landlord button sign -->
+                            <div class="flex flex-col space-y-1.5">
+                              <button @click="signAgreement(m.id, 'landlord')" 
+                                      :disabled="details.signatures.landlordSigned || currentUser.name !== details.landlord"
+                                      class="p-2.5 rounded-xl text-[10px] font-black border transition-all text-center flex items-center justify-center gap-1 focus:outline-none"
+                                      :class="details.signatures.landlordSigned ? 'bg-slate-800 text-emerald-400 border-slate-700' : (currentUser.name === details.landlord ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 border-amber-600 shadow' : 'bg-slate-950 text-slate-600 border-slate-800/80 cursor-not-allowed')">
+                                <i data-lucide="check" class="h-3.5 w-3.5" x-show="details.signatures.landlordSigned"></i>
+                                <span x-text="details.signatures.landlordSigned ? 'Owner Signed ✓' : 'Sign as Owner'"></span>
+                              </button>
+                              <span class="text-[8px] text-slate-550 text-center font-bold" x-text="details.signatures.landlordSigned ? 'Digitally Stamped' : 'Requires owner switch to sign'"></span>
+                            </div>
+
+                            <!-- Tenant button sign -->
+                            <div class="flex flex-col space-y-1.5">
+                              <button @click="signAgreement(m.id, 'tenant')" 
+                                      :disabled="details.signatures.tenantSigned || currentUser.name !== details.tenant"
+                                      class="p-2.5 rounded-xl text-[10px] font-black border transition-all text-center flex items-center justify-center gap-1 focus:outline-none"
+                                      :class="details.signatures.tenantSigned ? 'bg-slate-800 text-emerald-400 border-slate-700' : (currentUser.name === details.tenant ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 border-amber-600 shadow' : 'bg-slate-950 text-slate-600 border-slate-800/80 cursor-not-allowed')">
+                                <i data-lucide="check" class="h-3.5 w-3.5" x-show="details.signatures.tenantSigned"></i>
+                                <span x-text="details.signatures.tenantSigned ? 'Tenant Signed ✓' : 'Sign as Tenant'"></span>
+                              </button>
+                              <span class="text-[8px] text-slate-555 text-center font-bold" x-text="details.signatures.tenantSigned ? 'Digitally Stamped' : 'Requires tenant switch to sign'"></span>
+                            </div>
+                          </div>
+
+                          <!-- Persistent check cleared indicator -->
+                          <div x-show="details.signatures.landlordSigned && details.signatures.tenantSigned" class="p-2 bg-emerald-500/10 border border-emerald-500/35 rounded-xl text-center text-[10px] font-black text-emerald-450 uppercase tracking-widest">
+                            ✓ fully Executed Deed Agreement
+                          </div>
+                        </div>
+
+                      </div>
+                    </template>
+
+                    <!-- Standard Text messages -->
+                    <template x-if="!m.text.startsWith('📜')">
+                      <div class="max-w-[75%] px-4 py-3 rounded-2xl text-xs shadow-sm font-medium"
+                           :class="m.senderId === currentUser.id ? 'bg-amber-500 text-slate-950 rounded-tr-none' : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-855 text-slate-900 dark:text-slate-200 rounded-tl-none'">
+                        <p x-text="m.text" class="leading-relaxed"></p>
+                        <span class="text-[8px] text-slate-450 dark:text-slate-500 mt-1 block text-right font-bold" x-text="m.senderId === currentUser.id ? 'Sent 10:45 AM' : 'Received 10:45 AM'"></span>
+                      </div>
+                    </template>
+
+                  </div>
+                </template>
+              </div>
+
+              <!-- Message input form submit panel -->
+              <form @submit.prevent="sendMessage()" class="p-3.5 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex items-center space-x-2">
+                <input type="text" x-model="chatInput" placeholder="Send query message, negotiate deposit rates, or ask parameters..." class="flex-grow px-4 py-3 text-xs bg-slate-50 dark:bg-slate-950 border border-slate-202 dark:border-slate-855 rounded-xl focus:outline-none focus:border-amber-500 text-slate-900 dark:text-slate-200 font-medium" />
+                <button type="submit" class="p-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl focus:outline-none"><i data-lucide="send" class="h-4.5 w-4.5"></i></button>
+              </form>
+
+            </div>
+          </template>
+          
+          <template x-if="!activeRecipientId">
+            <div class="flex-grow flex flex-col items-center justify-center p-8 text-center space-y-4">
+              <i data-lucide="message-square" class="h-12 w-12 text-slate-450"></i>
+              <h4 class="font-extrabold text-sm dark:text-white">Start a Direct Negotiation</h4>
+              <p class="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">Select a chat inbox thread or browse properties to start a direct broker-free discussion.</p>
+            </div>
+          </template>
+        </div>
+
+        <!-- E-stamp generator builder form dialog modal -->
+        <div x-show="showAgreementModal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4" x-transition>
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-6 max-w-xl w-full shadow-2xl relative flex flex-col max-h-[90vh] overflow-y-auto text-left" @click.away="showAgreementModal = false">
+            
+            <div class="flex items-center justify-between border-b border-slate-150 dark:border-slate-800 pb-3 mb-4">
+              <h4 class="font-extrabold text-sm dark:text-white flex items-center gap-1.5">
+                <i data-lucide="file-text" class="h-4.5 w-4.5 text-amber-500"></i> Draft Peer-to-Peer Lease Deed
+              </h4>
+              <button @click="showAgreementModal = false" class="text-slate-450 hover:text-slate-600 dark:hover:text-white focus:outline-none">✕</button>
+            </div>
+
+            <form @submit.prevent="postAgreement()" class="space-y-4 text-xs text-slate-700 dark:text-slate-350">
+              
+              <!-- Stamp duty selection -->
+              <div class="space-y-2">
+                <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-400">Stamp Duty Value</label>
+                <div class="grid grid-cols-3 gap-2.5">
+                  <button type="button" @click="agreementStamp = 100" class="py-2.5 border rounded-xl font-bold transition-all focus:outline-none" :class="agreementStamp === 100 ? 'bg-amber-500 text-slate-950 border-amber-600' : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800'">₹100 (Standard)</button>
+                  <button type="button" @click="agreementStamp = 200" class="py-2.5 border rounded-xl font-bold transition-all focus:outline-none" :class="agreementStamp === 200 ? 'bg-amber-500 text-slate-950 border-amber-600' : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800'">₹200</button>
+                  <button type="button" @click="agreementStamp = 500" class="py-2.5 border rounded-xl font-bold transition-all focus:outline-none" :class="agreementStamp === 500 ? 'bg-amber-500 text-slate-950 border-amber-600' : 'bg-slate-50 dark:bg-slate-950 border-slate-200 dark:border-slate-800'">₹500 (Premium)</button>
+                </div>
+              </div>
+
+              <!-- Financial parameters -->
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                  <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-400">Monthly Rent (₹)</label>
+                  <input type="number" x-model="agreementRent" class="w-full px-3 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl focus:outline-none focus:border-amber-500 font-extrabold text-slate-900 dark:text-white" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="block font-black uppercase text-[9px] tracking-wider text-slate-550 dark:text-slate-400">Security Deposit (₹)</label>
+                  <input type="number" x-model="agreementDeposit" class="w-full px-3 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl focus:outline-none focus:border-amber-500 font-extrabold text-slate-900 dark:text-white" />
+                </div>
+              </div>
+
+              <!-- Duration Notice -->
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1.5">
+                  <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-400">Notice Period (Months)</label>
+                  <input type="number" x-model="agreementNotice" class="w-full px-3 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl focus:outline-none focus:border-amber-500 font-bold text-slate-900 dark:text-white" />
+                </div>
+                <div class="space-y-1.5">
+                  <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-400">Commencement Date</label>
+                  <input type="date" x-model="agreementCommencement" class="w-full px-3 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-202 dark:border-slate-855 rounded-xl focus:outline-none focus:border-amber-500 font-bold text-slate-900 dark:text-white" />
+                </div>
+              </div>
+
+              <div class="p-3 bg-slate-50 dark:bg-slate-950 border border-slate-202 dark:border-slate-855 rounded-xl text-[10px] text-slate-500 dark:text-slate-450 leading-relaxed font-semibold">
+                * Note: The First Party (Owner) and Second Party (Tenant) values are auto-filled using your direct thread configuration.
+              </div>
+
+              <button type="submit" class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl uppercase tracking-wider transition-all focus:outline-none shadow">
+                Generate Stamp Certificate
+              </button>
+            </form>
+
+          </div>
+        </div>
+
+      </div>
+    </template>
+
+    <!-- DASHBOARD PANEL -->
+    <template x-if="activeTab === 'dashboard'">
+      <div class="flex-grow max-w-7xl mx-auto w-full px-4 py-8 space-y-8 animate-fade-in">
+        
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 border-b border-slate-200 dark:border-slate-850">
+          <div>
+            <h2 class="text-xl font-black dark:text-white" x-text="currentUser.role === 'seller' ? 'Owner Listing Dashboard' : 'Direct Buyer Dashboard'"></h2>
+            <p class="text-xs text-slate-550 dark:text-slate-400 font-semibold mt-0.5">Track listing activity, commission savings, and site visits leads</p>
+          </div>
+          <span class="px-3 py-1 bg-amber-500/10 border border-amber-500/25 text-amber-650 dark:text-amber-400 font-black rounded-xl text-xs uppercase tracking-widest shadow-sm">
+            verified account
+          </span>
+        </div>
+
+        <!-- Metrics widgets -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-slate-900 dark:text-white">
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-6 rounded-2xl flex items-center justify-between shadow-sm">
+            <div class="space-y-1">
+              <span class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider block">Brokerage Saved</span>
+              <span class="text-2xl font-black text-amber-500" x-text="currentUser.role === 'seller' ? '₹1,85,000' : '₹90,000'"></span>
+            </div>
+            <div class="h-10 w-10 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center shrink-0">
+              <i data-lucide="piggy-bank" class="h-5 w-5"></i>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-6 rounded-2xl flex items-center justify-between shadow-sm">
+            <div class="space-y-1">
+              <span class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider block">Inspections Scheduled</span>
+              <span class="text-2xl font-black" x-text="visitsLog.length + ' tours'"></span>
+            </div>
+            <div class="h-10 w-10 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center shrink-0">
+              <i data-lucide="calendar" class="h-5 w-5"></i>
+            </div>
+          </div>
+
+          <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 p-6 rounded-2xl flex items-center justify-between shadow-sm">
+            <div class="space-y-1">
+              <span class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider block">Active listed properties</span>
+              <span class="text-2xl font-black" x-text="sellerPropertiesCount()"></span>
+            </div>
+            <div class="h-10 w-10 bg-amber-500/10 text-amber-500 rounded-xl flex items-center justify-center shrink-0">
+              <i data-lucide="building" class="h-5 w-5"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Custom table visually displaying seller listed properties -->
+        <div class="p-6 bg-white dark:bg-slate-900 border border-slate-202 dark:border-slate-850 rounded-3xl space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="font-extrabold text-sm dark:text-white flex items-center gap-1.5">
+              <i data-lucide="home" class="h-4.5 w-4.5 text-amber-500"></i> Property Status Log
+            </h3>
+            
+            <button @click="openAddPropertyModal()" class="px-3 py-1.5 bg-amber-500 text-slate-950 font-black rounded-lg text-[10px] uppercase tracking-wider focus:outline-none">
+              Add listing
+            </button>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="w-full text-xs text-left text-slate-600 dark:text-slate-300">
+              <thead class="text-[10px] uppercase tracking-widest text-slate-550 border-b border-slate-150 dark:border-slate-800 font-black">
+                <tr>
+                  <th scope="col" class="py-3 px-4">Listed Property</th>
+                  <th scope="col" class="py-3 px-4">Transaction</th>
+                  <th scope="col" class="py-3 px-4">City</th>
+                  <th scope="col" class="py-3 px-4">Price / Rent</th>
+                  <th scope="col" class="py-3 px-4">Owner Name</th>
+                  <th scope="col" class="py-3 px-4">Status</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 dark:divide-slate-800/80 font-semibold">
+                <template x-for="p in properties" :key="p.id">
+                  <tr>
+                    <td class="py-4 px-4 font-extrabold text-slate-900 dark:text-white" x-text="p.title"></td>
+                    <td class="py-4 px-4 uppercase text-[10px] text-slate-500" x-text="p.type"></td>
+                    <td class="py-4 px-4" x-text="p.location.city"></td>
+                    <td class="py-4 px-4 font-bold text-amber-500" x-text="formatPrice(p.price) + (p.type === 'rent' ? '/mo' : '')"></td>
+                    <td class="py-4 px-4" x-text="p.sellerName"></td>
+                    <td class="py-4 px-4">
+                      <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">Active</span>
+                    </td>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+    </template>
+
+    <!-- VISITS LOGBOOK TAB -->
+    <template x-if="activeTab === 'visits'">
+      <div class="flex-grow max-w-7xl mx-auto w-full px-4 py-8 space-y-6 animate-fade-in">
+        
+        <div class="flex justify-between items-center pb-3 border-b border-slate-200 dark:border-slate-850">
+          <div>
+            <h2 class="text-xl font-black dark:text-white">Site Visits Logbook</h2>
+            <p class="text-xs text-slate-550 dark:text-slate-400 font-semibold mt-0.5">Track inspect bookings scheduled between buyer and owner parties</p>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <template x-for="v in visitsLog" :key="v.id">
+            <div class="p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-850 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              
+              <div class="flex items-center space-x-4">
+                <div class="h-10 w-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center shrink-0 shadow-sm border border-amber-500/15">
+                  <i data-lucide="calendar" class="h-5 w-5"></i>
+                </div>
+                <div>
+                  <h4 class="font-extrabold text-sm dark:text-white" x-text="pAddress(v.propertyId)"></h4>
+                  <div class="flex items-center space-x-3 text-xs text-slate-500 dark:text-slate-400 mt-1 font-semibold">
+                    <span class="flex items-center"><i data-lucide="clock" class="h-3.5 w-3.5 mr-1 text-slate-450"></i> Date: June 15, 2026</span>
+                    <span class="flex items-center"><i data-lucide="user" class="h-3.5 w-3.5 mr-1 text-slate-450"></i> Visitor: Rahul Verma</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Status checks triggers -->
+              <div class="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-start">
+                
+                <span class="text-xs font-bold px-3 py-1 rounded-xl border uppercase tracking-wider text-[10px]"
+                      :class="v.status === 'Approved' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-450'"
+                      x-text="v.status"></span>
+
+                <!-- Owner click approvals actions (Visible when active portal switch is Seller) -->
+                <template x-if="v.status === 'Pending Approval' && currentUser.role === 'seller'">
+                  <div class="flex items-center space-x-2">
+                    <button @click="approveVisit(v.id)" class="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-black rounded-lg text-[10px] uppercase tracking-wider focus:outline-none transition-colors">
+                      Approve
+                    </button>
+                    <button @click="declineVisit(v.id)" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-950 dark:hover:bg-slate-800 text-slate-650 dark:text-slate-350 font-bold rounded-lg text-[10px] uppercase tracking-wider focus:outline-none transition-colors border border-slate-200 dark:border-slate-800">
+                      Decline
+                    </button>
+                  </div>
+                </template>
+                
+              </div>
+
+            </div>
+          </template>
+
+          <template x-if="visitsLog.length === 0">
+            <div class="py-16 px-4 text-center border border-dashed border-slate-300 dark:border-slate-800 rounded-3xl space-y-3">
+              <i data-lucide="calendar" class="h-8 w-8 text-slate-450 mx-auto"></i>
+              <p class="text-xs text-slate-500 font-bold uppercase">No site tour inspection bookings logged</p>
+            </div>
+          </template>
+        </div>
+
+      </div>
+    </template>
+
+    <!-- NEW PROPERTY LISTING MODAL DIALOG (Available to both roles) -->
+    <div x-show="showAddPropertyModal" class="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4" x-transition>
+      <div class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 max-w-2xl w-full shadow-2xl relative flex flex-col max-h-[90vh] overflow-y-auto text-left" @click.away="showAddPropertyModal = false">
+        
+        <div class="flex items-center justify-between border-b border-slate-150 dark:border-slate-850 pb-3.5 mb-5">
+          <h3 class="font-extrabold text-base dark:text-white flex items-center gap-1.5">
+            <i data-lucide="plus-circle" class="h-5 w-5 text-amber-500"></i> List Your Property (Land, House, Shop)
+          </h3>
+          <button @click="showAddPropertyModal = false" class="text-slate-400 hover:text-slate-650 dark:hover:text-white focus:outline-none">✕</button>
+        </div>
+
+        <form @submit.prevent="submitNewProperty()" class="space-y-4 text-xs text-slate-700 dark:text-slate-300">
+          
+          <!-- Title input -->
+          <div class="space-y-1.5">
+            <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-450">Listing Title / Headline</label>
+            <input type="text" x-model="newProperty.title" placeholder="e.g. Spacious 2BHK Flat with Balcony in Hitech City" required class="w-full px-3.5 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-bold" />
+          </div>
+
+          <!-- Description -->
+          <div class="space-y-1.5">
+            <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-450">Description Details</label>
+            <textarea x-model="newProperty.description" placeholder="Provide details about rooms, location perks, neighborhood hubs, water facilities, and zero broker terms..." required rows="3" class="w-full px-3.5 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-medium"></textarea>
+          </div>
+
+          <!-- Type, Category & City grids -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="space-y-1.5">
+              <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-450">Transaction Mode</label>
+              <select x-model="newProperty.type" class="w-full p-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 outline-none">
+                <option value="sale">For Sale (Buy)</option>
+                <option value="rent">For Rent</option>
+              </select>
+            </div>
+            
+            <div class="space-y-1.5">
+              <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-450">Property Category</label>
+              <select x-model="newProperty.category" class="w-full p-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 outline-none">
+                <option value="Apartment">Apartment / Flat</option>
+                <option value="Villa">Independent Villa</option>
+                <option value="Duplex">Duplex House</option>
+                <option value="Land">Land / Plot Area</option>
+                <option value="Shop">Commercial Shop</option>
+              </select>
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-450">Locality City</label>
+              <select x-model="newProperty.city" class="w-full p-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl text-xs font-bold text-slate-800 dark:text-slate-200 outline-none">
+                <option value="Hyderabad">Hyderabad</option>
+                <option value="Bangalore">Bangalore</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Price, Area, BHK, Baths grids -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div class="space-y-1.5">
+              <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-450">Price / Rent (₹)</label>
+              <input type="number" x-model="newProperty.price" placeholder="Total value in ₹" required class="w-full px-3 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-extrabold" />
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-450">Super Area (sq.ft)</label>
+              <input type="number" x-model="newProperty.area" placeholder="e.g. 1500" required class="w-full px-3 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-bold" />
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-450">BHK configuration</label>
+              <input type="number" x-model="newProperty.beds" placeholder="e.g. 3 (0 if Land)" class="w-full px-3 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-bold" />
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-450">Bathrooms</label>
+              <input type="number" x-model="newProperty.baths" placeholder="e.g. 2" class="w-full px-3 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-bold" />
+            </div>
+          </div>
+
+          <!-- Address and Image URLs -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="space-y-1.5">
+              <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-450">Exact Location Address</label>
+              <input type="text" x-model="newProperty.address" placeholder="e.g. Flat 302, Sector 2, Indiranagar" required class="w-full px-3.5 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-semibold" />
+            </div>
+
+            <div class="space-y-1.5">
+              <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-450">Image URL Link</label>
+              <input type="url" x-model="newProperty.imageUrl" placeholder="Paste link (defaults if left empty)" class="w-full px-3.5 py-2.5 bg-slate-55 dark:bg-slate-950 border border-slate-200 dark:border-slate-855 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:border-amber-500 font-medium" />
+            </div>
+          </div>
+
+          <!-- Amenities selections -->
+          <div class="space-y-2">
+            <label class="block font-black uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-405">Amenities checkboxes</label>
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 font-bold text-xs text-slate-700 dark:text-slate-350">
+              <label class="flex items-center space-x-1.5"><input type="checkbox" value="Gym" x-model="newProperty.amenitiesList" class="rounded accent-amber-500" /> <span>Gym Room</span></label>
+              <label class="flex items-center space-x-1.5"><input type="checkbox" value="Power Backup" x-model="newProperty.amenitiesList" class="rounded accent-amber-500" /> <span>Power Backup</span></label>
+              <label class="flex items-center space-x-1.5"><input type="checkbox" value="Security" x-model="newProperty.amenitiesList" class="rounded accent-amber-500" /> <span>24/7 Security</span></label>
+              <label class="flex items-center space-x-1.5"><input type="checkbox" value="Water Facility" x-model="newProperty.amenitiesList" class="rounded accent-amber-500" /> <span>Water Facility</span></label>
+            </div>
+          </div>
+
+          <div class="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-[10px] text-amber-650 dark:text-amber-400 font-semibold leading-relaxed">
+            * Listing will be posted under the current active user's identity (<span class="font-extrabold uppercase" x-text="currentUser.name"></span>). Switch roles in the navbar header to post as another client.
+          </div>
+
+          <button type="submit" class="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black rounded-xl uppercase tracking-wider transition-all shadow-lg focus:outline-none">
+            Publish Direct Listing
+          </button>
+        </form>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="bg-slate-950 text-slate-500 border-t border-slate-900 py-8 text-center text-xs dark">
+    <div class="max-w-7xl mx-auto px-4 space-y-4">
+      <p class="font-bold">&copy; 2026 Owner2Buyer Technologies Pvt Ltd. Peer-to-Peer broker-free Real Estate portal.</p>
+      <p class="text-[10px] text-slate-600">All direct property leases drafted comply with legal stamping guidelines. Digital signature authentication is logged to first/second parties.</p>
+    </div>
+  </footer>
+
+  <!-- DYNAMIC ALPINE CODE HANDLER -->
+  <script>
+    function appState() {
+      return {
+        theme: 'dark',
+        activeTab: 'home',
+        searchCity: 'Hyderabad',
+        searchType: 'sale',
+        searchCategory: 'All',
+        searchBhk: 'All',
+        searchBudget: 50000000,
+        searchQuery: '',
+        chatInput: '',
+        
+        showAgreementModal: false,
+        showAddPropertyModal: false,
+
+        // Lease deed default parameters
+        agreementStamp: 100,
+        agreementRent: 45000,
+        agreementDeposit: 180000,
+        agreementDuration: 11,
+        agreementNotice: 2,
+        agreementCommencement: '2026-07-01',
+
+        // Mortgage inputs default parameters
+        mortgageLoan: 19600000,
+        mortgageTenure: 20,
+        mortgageRate: '8.5',
+
+        // Rent estimator input
+        rentIncome: 150000,
+
+        // Current active identity
+        currentUser: {
+          id: 'user_2',
+          name: 'Rahul Verma',
+          role: 'buyer',
+          avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'
+        },
+
+        activeRecipientId: null,
+        activePropertyId: null,
+        selectedProperty: null,
+
+        // Add Property Form model binding
+        newProperty: {
+          title: '',
+          description: '',
+          type: 'sale',
+          category: 'Apartment',
+          city: 'Hyderabad',
+          price: '',
+          area: '',
+          beds: '',
+          baths: '',
+          address: '',
+          imageUrl: '',
+          amenitiesList: []
+        },
+
+        // Mock Database of Properties
+        properties: [
+          {
+            id: 'prop_1',
+            title: 'Luxury 3BHK Villa in Gachibowli',
+            description: 'Beautiful, broker-free independent villa in Gachibowli. Offers 3 spacious bedrooms, modular kitchen, and private garden area. Located in a premium gated community with 24/7 security. Zero broker charges.',
+            price: 24500000,
+            type: 'sale',
+            category: 'Villa',
+            beds: 3,
+            baths: 4,
+            area: 3200,
+            location: { city: 'Hyderabad', address: 'Villas Phase 1, Near DLF Cybercity, Gachibowli' },
+            images: ['https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800'],
+            sellerId: 'user_1',
+            sellerName: 'Anjali Sharma',
+            sellerRating: 4.8,
+            sellerPhone: '9876543210',
+            amenities: ['Private Garden', 'Gated Community', 'Swimming Pool', 'Gym'],
+            coords: { x: 75, y: 85 }
+          },
+          {
+            id: 'prop_2',
+            title: 'Modern 2BHK Apartment in Hitech City',
+            description: 'Fully furnished, high-floor flat in Silicon Heights, walking distance to IT hubs. Modular kitchen, spacious balcony, direct owner verification.',
+            price: 45000,
+            type: 'rent',
+            category: 'Apartment',
+            beds: 2,
+            baths: 2,
+            area: 1250,
+            location: { city: 'Hyderabad', address: 'Block C, Silicon Heights, Hitech City' },
+            images: ['https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800'],
+            sellerId: 'user_1',
+            sellerName: 'Anjali Sharma',
+            sellerRating: 4.8,
+            sellerPhone: '9876543210',
+            amenities: ['Fully Furnished', 'Gym', 'High Speed Elevators'],
+            coords: { x: 125, y: 65 }
+          },
+          {
+            id: 'prop_3',
+            title: 'Ultra Luxury 4BHK Duplex in Jubilee Hills',
+            description: 'Jubilee Hills double-height duplex apartment, marble flooring, private elevator, VRV air conditioning. Scenic views of KBR National Park.',
+            price: 78000000,
+            type: 'sale',
+            category: 'Duplex',
+            beds: 4,
+            baths: 5,
+            area: 4800,
+            location: { city: 'Hyderabad', address: 'Jubilee Enclave, Road No 36, Jubilee Hills' },
+            images: ['https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800'],
+            sellerId: 'user_3',
+            sellerName: 'Vikram Reddy',
+            sellerRating: 4.5,
+            sellerPhone: '7654321098',
+            amenities: ['Home Theatre', 'KBR Park View', 'Private Elevator'],
+            coords: { x: 155, y: 130 }
+          },
+          {
+            id: 'prop_4',
+            title: 'Cozy 1BHK Flat in Indiranagar',
+            description: 'Quiet, premium apartment in the heart of Indiranagar. Easy access to cafes and metro stations. Perfect for working professionals.',
+            price: 28000,
+            type: 'rent',
+            category: 'Apartment',
+            beds: 1,
+            baths: 1,
+            area: 750,
+            location: { city: 'Bangalore', address: '12th Main Road, HAL 2nd Stage, Indiranagar' },
+            images: ['https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800'],
+            sellerId: 'user_4',
+            sellerName: 'Karthik Rao',
+            sellerRating: 4.7,
+            sellerPhone: '8765432109',
+            amenities: ['Power Backup', 'Security', 'Internet Line'],
+            coords: { x: 50, y: 60 }
+          },
+          {
+            id: 'prop_5',
+            title: 'Sleek 3BHK Penthouse in Whitefield',
+            description: 'Spacious duplex penthouse overlooking ITPL campus. Huge terrace garden, premium wooden flooring, fully air-conditioned, direct listing.',
+            price: 38000000,
+            type: 'sale',
+            category: 'Duplex',
+            beds: 3,
+            baths: 3,
+            area: 2900,
+            location: { city: 'Bangalore', address: 'ITPL Main Road, Hope Farm Junction, Whitefield' },
+            images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800'],
+            sellerId: 'user_4',
+            sellerName: 'Karthik Rao',
+            sellerRating: 4.7,
+            sellerPhone: '8765432109',
+            amenities: ['Terrace Garden', 'Clubhouse Access', '2 Car Parks'],
+            coords: { x: 135, y: 110 }
+          }
+        ],
+
+        // Messaging Threads
+        threads: [
+          {
+            recipientId: 'user_1',
+            name: 'Anjali Sharma',
+            avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150',
+            role: 'owner',
+            propertyId: 'prop_2'
+          }
+        ],
+
+        // Preloaded Messages logs
+        chatMessages: [
+          {
+            id: 'msg_1',
+            senderId: 'user_2',
+            receiverId: 'user_1',
+            text: 'Hi Anjali, is this modern 2BHK flat in Hitech City still available? I would like to negotiate the rent agreement terms.',
+            timestamp: new Date().toISOString()
+          },
+          {
+            id: 'msg_2',
+            senderId: 'user_1',
+            receiverId: 'user_2',
+            text: 'Hello Rahul! Yes, the apartment is available. I can lease it out broker-free. We can draft the agreement terms directly inside this thread.',
+            timestamp: new Date().toISOString()
+          }
+        ],
+
+        favoritesList: ['prop_2'],
+
+        visitsLog: [
+          {
+            id: 'visit_1',
+            propertyId: 'prop_1',
+            status: 'Pending Approval'
+          }
+        ],
+
+        init() {
+          setTimeout(() => { lucide.createIcons(); }, 150);
+          this.updateBudgetLimits();
+        },
+
+        navigate(tab) {
+          this.activeTab = tab;
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        toggleTheme() {
+          this.theme = this.theme === 'light' ? 'dark' : 'light';
+          document.documentElement.classList.toggle('dark', this.theme === 'dark');
+        },
+
+        toggleRole() {
+          if (this.currentUser.role === 'buyer') {
+            this.currentUser.role = 'seller';
+            this.currentUser.name = 'Anjali Sharma';
+            this.currentUser.avatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150';
+          } else {
+            this.currentUser.role = 'buyer';
+            this.currentUser.name = 'Rahul Verma';
+            this.currentUser.avatar = 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150';
+          }
+        },
+
+        formatPrice(val) {
+          if (val >= 10000000) return `₹${(val / 10000000).toFixed(2)} Cr`;
+          if (val >= 100000) return `₹${(val / 100000).toFixed(2)} L`;
+          return `₹${val.toLocaleString()}`;
+        },
+
+        pAddress(id) {
+          const prop = this.properties.find(p => p.id === id);
+          return prop ? prop.title : 'Direct Property';
+        },
+
+        updateBudgetLimits() {
+          if (this.searchType === 'rent') {
+            this.searchBudget = 150000;
+          } else {
+            this.searchBudget = 60000000;
+          }
+        },
+
+        resetFilters() {
+          this.searchCategory = 'All';
+          this.searchBhk = 'All';
+          this.searchQuery = '';
+          this.updateBudgetLimits();
+        },
+
+        filteredProperties() {
+          return this.properties.filter(p => {
+            if (p.location.city.toLowerCase() !== this.searchCity.toLowerCase()) return false;
+            if (p.type !== this.searchType) return false;
+            if (this.searchCategory !== 'All' && p.category !== this.searchCategory) return false;
+            if (this.searchBhk !== 'All' && p.beds !== parseInt(this.searchBhk)) return false;
+            if (p.price > this.searchBudget) return false;
+            
+            if (this.searchQuery.trim()) {
+              const query = this.searchQuery.toLowerCase();
+              const inTitle = p.title.toLowerCase().includes(query);
+              const inDesc = p.description.toLowerCase().includes(query);
+              const inAddr = p.location.address.toLowerCase().includes(query);
+              if (!inTitle && !inDesc && !inAddr) return false;
+            }
+            return true;
+          });
+        },
+
+        selectProperty(id) {
+          this.selectedProperty = this.properties.find(p => p.id === id);
+          this.activePropertyId = id;
+          this.mortgageLoan = Math.round(this.selectedProperty.price * 0.8);
+          this.navigate('details');
+        },
+
+        isFavorite(id) {
+          return this.favoritesList.includes(id);
+        },
+
+        toggleFavorite(id) {
+          if (this.favoritesList.includes(id)) {
+            this.favoritesList = this.favoritesList.filter(item => item !== id);
+          } else {
+            this.favoritesList.push(id);
+          }
+        },
+
+        initiateChat(sellerId, propId) {
+          this.activeRecipientId = sellerId;
+          this.activePropertyId = propId;
+          
+          // Verify if thread already exists
+          const existing = this.threads.find(t => t.recipientId === sellerId);
+          if (!existing) {
+            const seller = this.properties.find(p => p.id === propId);
+            this.threads.push({
+              recipientId: seller.sellerId,
+              name: seller.sellerName,
+              avatar: seller.id === 'prop_1' ? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150' : (seller.id === 'prop_2' ? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150' : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'),
+              role: 'owner',
+              propertyId: propId
+            });
+          }
+
+          this.navigate('chat');
+        },
+
+        selectThread(recipientId) {
+          this.activeRecipientId = recipientId;
+          const thread = this.threads.find(t => t.recipientId === recipientId);
+          this.activePropertyId = thread.propertyId;
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        activeRecipient() {
+          return this.threads.find(t => t.recipientId === this.activeRecipientId);
+        },
+
+        activeMessages() {
+          return this.chatMessages;
+        },
+
+        sendMessage() {
+          if (!this.chatInput.trim()) return;
+          this.chatMessages.push({
+            id: `msg_${Date.now()}`,
+            senderId: this.currentUser.id,
+            receiverId: this.activeRecipientId,
+            text: this.chatInput,
+            timestamp: new Date().toISOString()
+          });
+          this.chatInput = '';
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        openAgreementBuilder() {
+          const prop = this.properties.find(p => p.id === this.activePropertyId);
+          if (prop) {
+            this.agreementRent = prop.price;
+            this.agreementDeposit = prop.type === 'rent' ? prop.price * 4 : Math.round(prop.price * 0.1);
+          }
+          this.showAgreementModal = true;
+        },
+
+        postAgreement() {
+          const doc = {
+            stampDuty: this.agreementStamp,
+            rent: this.agreementRent,
+            deposit: this.agreementDeposit,
+            duration: this.agreementDuration,
+            notice: this.agreementNotice,
+            commencementDate: this.agreementCommencement,
+            landlord: this.currentUser.role === 'seller' ? this.currentUser.name : this.activeRecipient().name,
+            tenant: this.currentUser.role === 'seller' ? this.activeRecipient().name : this.currentUser.name,
+            propertyAddress: this.properties.find(p => p.id === this.activePropertyId).location.address,
+            signatures: { 
+              landlordSigned: this.currentUser.role === 'seller', 
+              tenantSigned: this.currentUser.role === 'buyer' 
+            }
+          };
+          
+          this.chatMessages.push({
+            id: `msg_${Date.now()}`,
+            senderId: this.currentUser.id,
+            receiverId: this.activeRecipientId,
+            text: '📜' + JSON.stringify(doc),
+            timestamp: new Date().toISOString()
+          });
+          this.showAgreementModal = false;
+          this.$nextTick(() => { lucide.createIcons(); });
+        },
+
+        signAgreement(msgId, role) {
+          const msg = this.chatMessages.find(m => m.id === msgId);
+          if (!msg) return;
+          
+          const details = JSON.parse(msg.text.replace('📜', ''));
+          if (role === 'landlord') details.signatures.landlordSigned = true;
+          if (role === 'tenant') details.signatures.tenantSigned = true;
+          
+          msg.text = '📜' + JSON.stringify(details);
+          
+          if (details.signatures.landlordSigned && details.signatures.tenantSigned) {
+            confetti({
+              particleCount: 150,
+              spread: 80,
+              origin: { y: 0.6 }
+            });
+          }
+        },
+
+        scheduleSiteVisit(propId) {
+          this.visitsLog.push({
+            id: `visit_${Date.now()}`,
+            propertyId: propId,
+            status: 'Pending Approval'
+          });
+          alert("Physical site visit scheduled successfully!");
+          this.navigate('visits');
+        },
+
+        pendingVisitsCount() {
+          return this.visitsLog.filter(v => v.status === 'Pending Approval').length;
+        },
+
+        approveVisit(id) {
+          const visit = this.visitsLog.find(v => v.id === id);
+          if (visit) {
+            visit.status = 'Approved';
+            alert("Site visit has been officially approved!");
+          }
+        },
+
+        declineVisit(id) {
+          const visit = this.visitsLog.find(v => v.id === id);
+          if (visit) {
+            visit.status = 'Declined';
+            alert("Site visit booking declined.");
+          }
+        },
+
+        openAddPropertyModal() {
+          this.showAddPropertyModal = true;
+        },
+
+        submitNewProperty() {
+          const newId = `prop_${Date.now()}`;
+          const finalImage = this.newProperty.imageUrl.trim() || 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800';
+          
+          const propertiesLen = this.properties.length;
+          // random coordinates mapping
+          const randomX = Math.round(50 + Math.random() * 100);
+          const randomY = Math.round(50 + Math.random() * 100);
+
+          this.properties.push({
+            id: newId,
+            title: this.newProperty.title,
+            description: this.newProperty.description,
+            price: parseInt(this.newProperty.price),
+            type: this.newProperty.type,
+            category: this.newProperty.category,
+            beds: this.newProperty.beds ? parseInt(this.newProperty.beds) : 0,
+            baths: this.newProperty.baths ? parseInt(this.newProperty.baths) : 0,
+            area: parseInt(this.newProperty.area),
+            location: { city: this.newProperty.city, address: this.newProperty.address },
+            images: [finalImage],
+            sellerId: this.currentUser.id,
+            sellerName: this.currentUser.name,
+            sellerRating: 4.8,
+            sellerPhone: '9876543210',
+            amenities: this.newProperty.amenitiesList.length > 0 ? this.newProperty.amenitiesList : ['Direct Connect', 'Clean Title'],
+            coords: { x: randomX, y: randomY }
+          });
+
+          // Reset modal bindings
+          this.newProperty = {
+            title: '',
+            description: '',
+            type: 'sale',
+            category: 'Apartment',
+            city: 'Hyderabad',
+            price: '',
+            area: '',
+            beds: '',
+            baths: '',
+            address: '',
+            imageUrl: '',
+            amenitiesList: []
+          };
+
+          this.showAddPropertyModal = false;
+          alert("Your property has been successfully published to the live listings directory!");
+          this.navigate('properties');
+        },
+
+        sellerPropertiesCount() {
+          if (this.currentUser.role === 'seller') {
+            return this.properties.filter(p => p.sellerId === this.currentUser.id).length + ' Listings';
+          }
+          return '0 Listings';
+        },
+
+        // Mortgage EMI computation formula
+        calculateEmi() {
+          const loan = parseFloat(this.mortgageLoan);
+          const ratePercent = parseFloat(this.mortgageRate);
+          const years = parseFloat(this.mortgageTenure);
+          
+          if (isNaN(loan) || isNaN(ratePercent) || isNaN(years) || loan <= 0) return 0;
+          
+          const monthlyRate = (ratePercent / 12) / 100;
+          const months = years * 12;
+          
+          const emi = (loan * monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+          return Math.round(emi);
+        }
+      }
+    }
+  </script>
+
+</body>
+</html>
