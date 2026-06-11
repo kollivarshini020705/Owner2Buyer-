@@ -42,6 +42,7 @@ interface AppContextType {
   favorites: string[];
   toggleFavorite: (id: string) => void;
   isFavorite: (id: string) => boolean;
+  formatPrice: (price: number) => string;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -73,6 +74,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       const demoUser = {
         id: 'user_2',
         name: 'Rahul Verma',
+        email: 'buyer@example.com',
         role: 'buyer' as const,
         avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'
       };
@@ -132,13 +134,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const toggleRole = () => {
     if (!user) return;
-    const newRole = user.role === 'buyer' ? 'seller' : 'buyer';
+    const newRole: 'buyer' | 'seller' = user.role === 'buyer' ? 'seller' : 'buyer';
     const newName = newRole === 'seller' ? 'Anjali Sharma' : 'Rahul Verma';
     const newAvatar = newRole === 'seller' 
       ? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150' 
       : 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150';
     
-    const updated = { ...user, role: newRole, name: newName, avatar: newAvatar };
+    const updated: UserInfo = { ...user, role: newRole, name: newName, avatar: newAvatar };
     setUser(updated);
   };
 
@@ -343,6 +345,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const isFavorite = (id: string) => favorites.includes(id);
 
+  const formatPrice = (price: number) => {
+    if (price === undefined || price === null || isNaN(price)) return '₹0';
+    if (price >= 10000000) {
+      return `₹${(price / 10000000).toFixed(2)} Cr`;
+    }
+    if (price >= 100000) {
+      return `₹${(price / 100000).toFixed(2)} L`;
+    }
+    return `₹${price.toLocaleString('en-IN')}`;
+  };
+
   const activeRecipientName = (): string => {
     if (activeRecipientId === 'user_1') return 'Anjali Sharma';
     if (activeRecipientId === 'user_2') return 'Rahul Verma';
@@ -361,7 +374,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       activePropertyId, setActivePropertyId,
       chatMessages, fetchMessages, sendMessage, postAgreement, signAgreement,
       visitsLog, fetchVisits, bookVisit, updateVisitStatus,
-      favorites, toggleFavorite, isFavorite
+      favorites, toggleFavorite, isFavorite, formatPrice
     }}>
       {children}
     </AppContext.Provider>

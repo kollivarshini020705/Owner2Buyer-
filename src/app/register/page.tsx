@@ -85,10 +85,8 @@ export default function RegisterPage() {
           <div className="space-y-1.5">
             <label className="block uppercase text-[9px] tracking-wider text-slate-500 dark:text-slate-400">Account Type / Role</label>
             <div className="flex bg-slate-100 dark:bg-slate-955 p-1 rounded-xl border border-slate-200 dark:border-slate-800 text-xs font-bold">
-              <button type="button" onClick={() => setRole('buyer')} className="flex-grow py-2 rounded-lg transition-colors focus:outline-none" style={{ cursor: 'pointer' }}
-                      className={role === 'buyer' ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-500 dark:text-slate-400'}>Buyer / Tenant</button>
-              <button type="button" onClick={() => setRole('seller')} className="flex-grow py-2 rounded-lg transition-colors focus:outline-none" style={{ cursor: 'pointer' }}
-                      className={role === 'seller' ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-500 dark:text-slate-400'}>Landlord / Seller</button>
+              <button type="button" onClick={() => setRole('buyer')} className={`flex-grow py-2 rounded-lg transition-colors focus:outline-none ${role === 'buyer' ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`} style={{ cursor: 'pointer' }}>Buyer / Tenant</button>
+              <button type="button" onClick={() => setRole('seller')} className={`flex-grow py-2 rounded-lg transition-colors focus:outline-none ${role === 'seller' ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-500 dark:text-slate-400'}`} style={{ cursor: 'pointer' }}>Landlord / Seller</button>
             </div>
           </div>
 
