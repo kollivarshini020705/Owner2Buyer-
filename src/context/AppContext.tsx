@@ -49,12 +49,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
   const [activeTab, setActiveTab] = useState<string>('home');
-  const [user, setUser] = useState<UserInfo | null>({
-    id: 'user_2',
-    name: 'Rahul Verma',
-    role: 'buyer',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'
-  });
+  const [user, setUser] = useState<UserInfo | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
   // States from API
@@ -65,6 +60,28 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [visitsLog, setVisitsLog] = useState<Visit[]>([]);
   const [favorites, setFavorites] = useState<string[]>(['prop_2']);
+
+  // Load saved credentials on mount to avoid hydration mismatch
+  useEffect(() => {
+    const savedUser = localStorage.getItem('o2b_user');
+    const savedToken = localStorage.getItem('o2b_token');
+    if (savedUser && savedToken) {
+      setUser(JSON.parse(savedUser));
+      setToken(savedToken);
+    } else {
+      // Set default demo mock user if none exists yet
+      const demoUser = {
+        id: 'user_2',
+        name: 'Rahul Verma',
+        role: 'buyer' as const,
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150'
+      };
+      setUser(demoUser);
+      setToken('demo_token');
+      localStorage.setItem('o2b_user', JSON.stringify(demoUser));
+      localStorage.setItem('o2b_token', 'demo_token');
+    }
+  }, []);
 
   // Mount effects
   useEffect(() => {

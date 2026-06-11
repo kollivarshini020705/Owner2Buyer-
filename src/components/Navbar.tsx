@@ -72,14 +72,23 @@ export default function Navbar({ onOpenAddModal }: NavbarProps) {
           <div class="flex items-center space-x-3">
             
             {/* User Identity switch */}
-            {user && (
-              <div class="flex items-center space-x-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl">
-                <span class="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden sm:inline">Portal:</span>
-                <button onClick={toggleRole} class="flex items-center space-x-1.5 focus:outline-none hover:opacity-80 transition-opacity" style={{ cursor: 'pointer' }}>
-                  <img src={user.avatar} class="h-5 w-5 rounded-full object-cover border border-amber-500/40" />
-                  <span class="text-xs font-black text-amber-600 dark:text-amber-400 uppercase">{user.role}</span>
+            {user ? (
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 px-3 py-1.5 rounded-xl">
+                  <span className="text-[9px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-wider hidden sm:inline">Portal:</span>
+                  <button onClick={toggleRole} className="flex items-center space-x-1.5 focus:outline-none hover:opacity-80 transition-opacity" style={{ cursor: 'pointer' }}>
+                    <img src={user.avatar} className="h-5 w-5 rounded-full object-cover border border-amber-500/40" />
+                    <span className="text-xs font-black text-amber-600 dark:text-amber-400 uppercase">{user.role}</span>
+                  </button>
+                </div>
+                <button onClick={logout} className="text-xs font-bold text-slate-500 hover:text-amber-500 focus:outline-none" style={{ cursor: 'pointer' }}>
+                  Logout
                 </button>
               </div>
+            ) : (
+              <a href="/login" className="text-xs font-bold text-slate-650 dark:text-slate-300 hover:text-amber-550 focus:outline-none px-3 py-1.5 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl">
+                Sign In
+              </a>
             )}
 
             {/* List Property CTA */}
