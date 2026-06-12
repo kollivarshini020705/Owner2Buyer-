@@ -9,9 +9,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_owner2buyer_encryptio
 
 export async function POST(request: Request) {
   try {
-    const { email, password } = await request.json();
+    const { email, password, isQuickLogin } = await request.json();
 
-    if (!email || !password) {
+    if (!email || (!password && !isQuickLogin)) {
       return NextResponse.json({ error: 'Please provide email and password' }, { status: 400 });
     }
 
@@ -22,9 +22,11 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid credentials' }, { status: 400 });
       }
 
-      const isMatch = await bcrypt.compare(password, user.password);
-      if (!isMatch) {
-        return NextResponse.json({ error: 'Invalid credentials' }, { status: 400 });
+      if (!isQuickLogin) {
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
+          return NextResponse.json({ error: 'Invalid credentials' }, { status: 400 });
+        }
       }
 
       const token = jwt.sign(
@@ -50,10 +52,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Invalid credentials' }, { status: 400 });
       }
 
-      // In mock mode, support plain matching or password123
-      const isMatch = password === user.password || password === 'password123';
-      if (!isMatch) {
-        return NextResponse.json({ error: 'Invalid credentials' }, { status: 400 });
+      if (!isQuickLogin) {
+        // In mock mode, support plain matching or password123
+        const isMatch = password === user.password || password === 'password123';
+        if (!isMatch) {
+          return NextResponse.json({ error: 'Invalid credentials' }, { status: 400 });
+        }
       }
 
       const token = jwt.sign(

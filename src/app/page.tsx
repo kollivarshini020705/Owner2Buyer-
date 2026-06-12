@@ -10,7 +10,7 @@ import {
   ChevronRight, ArrowLeft, Bookmark, MessageSquare, 
   Phone, Calendar, Clock, User, PiggyBank, 
   LayoutDashboard, Inbox, FileText, FileSignature, 
-  Check, CheckCircle, Calculator, SlidersHorizontal, Sliders, Map, TrendingUp, PlusCircle, Home
+  Check, CheckCircle, Calculator, SlidersHorizontal, Sliders, Map as MapIcon, TrendingUp, PlusCircle, Home
 } from 'lucide-react';
 
 export default function Page() {
@@ -543,7 +543,7 @@ export default function Page() {
                 
                 <div className="flex justify-between items-center border-b border-slate-200 dark:border-slate-800 pb-2">
                   <span className="text-[10px] font-extrabold text-slate-500 dark:text-slate-400 uppercase tracking-widest flex items-center">
-                    <Map className="h-4 w-4 mr-1 text-amber-500" /> Locality Map Coordinate Pins
+                    <MapIcon className="h-4 w-4 mr-1 text-amber-500" /> Locality Map Coordinate Pins
                   </span>
                   <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
                 </div>
