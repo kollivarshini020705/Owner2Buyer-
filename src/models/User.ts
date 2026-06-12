@@ -27,7 +27,9 @@ const UserSchema = new Schema({
     default: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  collection: 'o2b_users'
 });
 
-export default models.User || model('User', UserSchema);
+export default models.o2b_User || model('o2b_User', UserSchema);
+

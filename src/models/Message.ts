@@ -18,7 +18,9 @@ const MessageSchema = new Schema({
     default: Date.now,
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  collection: 'o2b_messages'
 });
 
-export default models.Message || model('Message', MessageSchema);
+export default models.o2b_Message || model('o2b_Message', MessageSchema);
+

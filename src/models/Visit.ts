@@ -23,7 +23,9 @@ const VisitSchema = new Schema({
     default: 'Pending Approval',
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  collection: 'o2b_visits'
 });
 
-export default models.Visit || model('Visit', VisitSchema);
+export default models.o2b_Visit || model('o2b_Visit', VisitSchema);
+

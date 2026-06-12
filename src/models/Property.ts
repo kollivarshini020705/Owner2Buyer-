@@ -67,7 +67,9 @@ const PropertySchema = new Schema({
     y: { type: Number, default: 100 }
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  collection: 'o2b_properties'
 });
 
-export default models.Property || model('Property', PropertySchema);
+export default models.o2b_Property || model('o2b_Property', PropertySchema);
+
